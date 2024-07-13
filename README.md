@@ -1,1 +1,1 @@
-# FtIRC
+# ft_irc
