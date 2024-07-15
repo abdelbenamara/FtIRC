@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/07/15 03:39:01 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/07/15 11:04:44 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,15 @@ int setup(char const *port)
 
 		if (bind(sockfd, info->ai_addr, info->ai_addrlen) == 0)
 			break;
+
+		if (close(sockfd) == -1)
+		{
+			std::cerr << "Error: close: " << strerror(errno) << std::endl;
+
+			freeaddrinfo(addr);
+
+			return (-1);
+		}
 	}
 
 	if (sockfd == -1)
