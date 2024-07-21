@@ -17,8 +17,8 @@ public :
 	std::string getNickname() const throw();
 	std::string getUsername() const throw();
 
-	void setNickname() throw();
-	void setUsername() throw();
+	void setNickname(std::string nickname) throw();
+	void setUsername(std::string username) throw();
 
 	// void for now and we can throw exceptions later, or ints for error codes, to discuss
 	void authenticate(User user) throw();
@@ -27,6 +27,7 @@ public :
 	void receiveMessage() throw();
 
 private :
+	int 		socket_fd;
 	std::string _username;
 	std::string _nickname;
 };

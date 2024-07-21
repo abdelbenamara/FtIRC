@@ -10,7 +10,7 @@ class Channel
 {
 public :
 	Channel() throw();
-	Channel(std::string _topic, std::string _key, int _limit) throw();
+	Channel(std::string name, std::string _topic, std::string _key, int _limit) throw();
 	Channel(Channel const &src) throw();
 	virtual ~Channel() throw();	
 	Channel& operator=(Channel const &rhs) throw();
@@ -23,7 +23,10 @@ public :
 
 	void notifyUsers(void) throw();
 
+
+
 private :
+	std::string _name;
 	std::string _topic;
 	std::string _key;
 	int			_limit;

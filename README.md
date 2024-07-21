@@ -23,7 +23,7 @@ Let n the number of file descriptors
 | select() | Everywhere | Not optimised, not practical, but since its installed on all platforms its often used as fallback | O(n) |
 | poll() | Linux | More practical then select() in the way that it counts file descriptors, the complexity is still O(n). it works like this: when you call Paul, the kernel needs to setup the necessary data structures to monitor the list of file descriptors you provided, it then waits for an event from those fds, as soon as an event is triggered, Paul returns, and the kernel tears down all the monitoring it did in the beginning. These repeated actions aren't efficient. Thank you Paul. | O(n) |
 epoll() | Linux | This is poll but better. Unlike poll, epoll maintains a persistent state, the kernel sets up watches for fds once and you have to remove them yourself, it can wait for events without having to redo the setup each time. It can handle more files than poll() | O(1)
-kqueue() | OS X, FreeBSD | Option not explored since on Mac| O(1) |
+kqueue() | OS X, FreeBSD | Option not explored since on Mac | O(1) |
 
 Next we looked at **bind**, used to associate a socket to a local adress (with an IP and a specific port). Its used on the servers side to specify on which adress and which port the server must listen to entering connections.
 
