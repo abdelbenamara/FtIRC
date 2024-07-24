@@ -35,6 +35,10 @@ Next we looked at **bind**, used to associate a socket to a local adress (with a
 
 So basically, connect would use htons (host to network short).
 
+### Additional files
+
+- ft_irc.excalidraw : an excalidraw file to view the UML scheme
+
 
 
 ### Bibliography:
