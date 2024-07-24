@@ -17,7 +17,7 @@
 
 
 #include "Channel.hpp"
-#include "User.hpp"
+#include "Client.hpp"
 
 #define MAX_CHANNELS 100
 #define MAX_CLIENTS 1000
@@ -38,8 +38,8 @@ public :
 	// verify channel name here !
 	void addChannel(const Channel &channel) throw();
 	void removeChannel(const Channel &channel) throw();
-	void addClient(const User &client) throw();
-	void removeClient(const User &client) throw();
+	void addClient(const Client &client) throw();
+	void removeClient(const Client &client) throw();
 
 	int	getSockFd() const;
 
@@ -60,7 +60,7 @@ private :
 	std::string				_password;
 	int						_sockfd;
 	std::vector<Channel>	_channels;
-	std::vector<User> 		_clients;
+	std::vector<Client> 		_clients;
 
 };
 

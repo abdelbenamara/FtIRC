@@ -1,27 +1,27 @@
-#ifndef USER_HPP
-# define USER_HPP
+#ifndef CLIENT_HPP
+# define CLIENT_HPP
 
 #include <string>
 
-#include "Channel.hpp"
+#include "Client.hpp"
 
-class User
+class Client
 {
 public :
-	User() throw();
-	User(std::string username, std::string nickname) throw();
-	User(User const &src) throw();
-	virtual ~User() throw();	
-	User& operator=(User const &rhs) throw();
+	Client() throw();
+	Client(std::string username, std::string nickname) throw();
+	Client(Client const &src) throw();
+	virtual ~Client() throw();	
+	Client& operator=(Client const &rhs) throw();
 
 	std::string getNickname() const throw();
-	std::string getUsername() const throw();
+	std::string getClientname() const throw();
 
 	void setNickname(std::string nickname) throw();
-	void setUsername(std::string username) throw();
+	void setClientname(std::string username) throw();
 
 	// void for now and we can throw exceptions later, or ints for error codes, to discuss
-	void authenticate(User user) throw();
+	void authenticate(Client client) throw();
 	void joinChannel(Channel channel) throw();
 	void sendMessage(std::string const message) throw();
 	void receiveMessage() throw();

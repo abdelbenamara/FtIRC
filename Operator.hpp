@@ -1,10 +1,10 @@
 #ifndef OPERATOR_HPP
 # define OPERATOR_HPP
 
-#include "User.hpp"
+#include "Client.hpp"
 #include "Channel.hpp"
 
-class Operator : public User
+class Operator : public Client
 {
 public :
 	// do we still have to do the canonical form ?
@@ -15,7 +15,7 @@ public :
 
 	Operator& operator=(Operator const &rhs) throw();
 
-	void kick(Channel channel, User user);
+	void kick(Channel channel, Client client);
 private :
 	// functions for MODE
 

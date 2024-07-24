@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "User.hpp"
+#include "Client.hpp"
 
 class Channel
 {
@@ -15,13 +15,13 @@ public :
 	virtual ~Channel() throw();	
 	Channel& operator=(Channel const &rhs) throw();
 
-	void addOperator(User user) throw();
-	void removeOperator(User user) throw();
+	void addOperator(Client client) throw();
+	void removeOperator(Client client) throw();
 
-	void addMember(User user) throw();
-	void removeMember(User user) throw();
+	void addMember(Client client) throw();
+	void removeMember(Client client) throw();
 
-	void notifyUsers(void) throw();
+	void notifyClient(void) throw();
 
 
 
@@ -30,8 +30,8 @@ private :
 	std::string _topic;
 	std::string _key;
 	int			_limit;
-	std::vector<User *> operators;
-	std::vector<User *> users;
+	std::vector<Client *> operators;
+	std::vector<Client *> clients;
 
 };
 #endif

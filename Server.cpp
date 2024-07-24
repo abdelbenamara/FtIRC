@@ -159,7 +159,7 @@ void Server::removeChannel(const Channel& channel) throw() {
     _channels.erase(std::remove(_channels.begin(), _channels.end(), channel), _channels.end());
 }
 
-void Server::addClient(const User& client) throw() {
+void Server::addClient(const Client& client) throw() {
     if (_clients.size() >= MAX_CLIENTS) {
         std::cerr << "Error: Maximum number of clients reached" << std::endl;
         return;
@@ -167,6 +167,6 @@ void Server::addClient(const User& client) throw() {
     _clients.push_back(client);
 }
 
-void Server::removeClient(const User& client) throw() {
+void Server::removeClient(const Client& client) throw() {
     _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
 }
