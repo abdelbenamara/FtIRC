@@ -1,67 +1,53 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
+/*   Updated: 2024/08/08 02:24:57 by abenamar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include <vector>
-#include <string>
+#ifndef __SERV_HPP__
+#define __SERV_HPP__
+
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <sstream>
+#include <map>
+#include <stdexcept>
+#include <string>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <netdb.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <algorithm>
-
-
-#include "Channel.hpp"
-#include "Client.hpp"
-
-#define MAX_CHANNELS 100
-#define MAX_CLIENTS 1000
-
+#include "ServerUtils.hpp"
 
 class Server
 {
-public :
-	Server() throw();
-	Server(const char * port, std::string password) throw();
-	Server(Server const &src) throw();
-	virtual ~Server() throw();	
-	Server& operator=(Server const &rhs) throw();
+public:
+	Server(char const *const numericserv, char const *const password, int const maxevents, int const bufsize) throw(std::invalid_argument, std::runtime_error);
+	virtual ~Server(void) throw();
 
-	// returns the socket fd
-	int start() throw();
-	void stop() throw();
-	// verify channel name here !
-	void addChannel(const Channel &channel) throw();
-	void removeChannel(const Channel &channel) throw();
-	void addClient(const Client &client) throw();
-	void removeClient(const Client &client) throw();
+	in_port_t port(void) const throw(std::runtime_error);
+	void run(void) throw(std::runtime_error);
 
-	int	getSockFd() const;
+private:
+	int const sockfd, epfd, maxevents, bufsize;
+	char const *const password;
+	epoll_event *const events;
+	char *const msgbuf;
 
-	class SocketErrorException : public std::exception
-	{
-		public :
-			virtual const char* what() const throw();
-	};
+	std::map<int, std::string> messages;
 
-	class GetAddrException : public std::exception
-	{
-		public :
-			virtual const char* what() const throw();
-	};
+	Server(void) throw();
+	Server(Server const & /* src */) throw();
 
-private :
-	const char				*_port;
-	std::string				_password;
-	int						_sockfd;
-	std::vector<Channel>	_channels;
-	std::vector<Client> 		_clients;
-
+	Server &operator=(Server const & /* rhs */) throw();
 };
 
 #endif

@@ -3,170 +3,159 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/21 18:13:17 by ejankovs          #+#    #+#             */
-/*   Updated: 2024/07/21 20:19:51 by ejankovs         ###   ########.fr       */
+/*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
+/*   Updated: 2024/08/08 02:25:45 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server() throw() : _port("0"), _password(""), _sockfd(-1) {}
+Server::Server(void) throw() : sockfd(-1), epfd(-1), maxevents(-1), bufsize(0), password(NULL), events(NULL), msgbuf(NULL), messages() { return; }
 
-Server::Server(const char* port, std::string password) throw() : _port(port), _password(password), _sockfd(-1) {}
-
-
-Server::Server(Server const& src) throw() : _port(src._port), _password(src._password), _channels(src._channels), _clients(src._clients), _sockfd(src._sockfd) {}
-
-Server::~Server() throw() { stop(); }
-
-Server& Server::operator=(Server const& rhs) throw() {
-    if (this != &rhs) {
-        _port = rhs._port;
-        _password = rhs._password;
-        _channels = rhs._channels;
-        _clients = rhs._clients;
-        _sockfd = rhs._sockfd;
-    }
-    return *this;
-}
-
-// we'll need to verify in client
-int	Server::getSockFd() const { return this->_sockfd; }
-
-const char* Server::GetAddrException::what() const throw()
+Server::Server(char const *const numericserv, char const *const password, int const maxevents, int const bufsize) throw(std::invalid_argument, std::runtime_error)
+try : sockfd(ServerUtils::initSocket(numericserv)), epfd(epoll_create1(0)), maxevents(maxevents), bufsize(bufsize), password(password), events(ServerUtils::initArray<epoll_event>(maxevents, "maxevents")), msgbuf(ServerUtils::initArray<char>(bufsize, "bufsize")), messages()
 {
-	return ("Error: getaddrinfo");
+	if (this->epfd == -1)
+		throw std::runtime_error(std::string("std::runtime_error: epoll_create1: ") + strerror(errno));
+
+	return;
 }
-
-const char* Server::SocketErrorException::what() const throw()
+catch (std::exception const &e)
 {
-	return ("Error: socket");
-}
+	std::string what("Server::Server: ");
 
-int Server::start() throw(Server::GetAddrException)
-{
-	int n;
-	addrinfo hints;
-	addrinfo *addr, *info;
+	what += e.what();
 
-	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV | AI_V4MAPPED | AI_ADDRCONFIG;
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_addrlen = 0;
-	hints.ai_addr = NULL;
-	hints.ai_canonname = NULL;
-	hints.ai_next = NULL;
-
-	if (getaddrinfo(NULL, this->_port, &hints, &addr) != 0)
-		throw GetAddrException();
-
-	for (info = addr; info != NULL; info = info->ai_next)
+	if (what.find("ipv4") == std::string::npos)
 	{
-		this->_sockfd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
-
-		if (this->_sockfd == -1)
-			continue;
-
-		if (fcntl(this->_sockfd, F_SETFL, O_NONBLOCK) == -1)
+		if (what.find("epoll_create1") == std::string::npos)
 		{
-			std::cerr << "Error: fcntl: " << strerror(errno) << std::endl;
+			if (what.find("maxevents") == std::string::npos)
+				delete[] this->events;
 
-			if (close(this->_sockfd) == -1)
-				std::cerr << "Error: close: " << strerror(errno) << std::endl;
-
-			freeaddrinfo(addr);
-			// for the time being the same exception is throw just to get out of the function
-			throw GetAddrException();
+			close(this->epfd);
 		}
 
-		if (bind(this->_sockfd, info->ai_addr, info->ai_addrlen) == 0)
-			break;
+		close(this->sockfd);
+	}
 
-		if (close(this->_sockfd) == -1)
+	throw std::runtime_error(what);
+}
+
+Server::Server(Server const & /* src */) throw() : sockfd(-1), epfd(-1), maxevents(-1), bufsize(0), password(NULL), events(NULL), msgbuf(NULL), messages() { return; }
+
+Server::~Server(void) throw()
+{
+	delete[] this->msgbuf;
+	delete[] this->events;
+
+	for (std::map<int, std::string>::iterator it = this->messages.begin(); it != this->messages.end(); ++it)
+		close(it->first);
+
+	close(this->epfd);
+	close(this->sockfd);
+
+	return;
+}
+
+Server &Server::operator=(Server const & /* rhs */) throw() { return (*this); }
+
+in_port_t Server::port(void) const throw(std::runtime_error)
+{
+	sockaddr_storage addr;
+	socklen_t addrlen = sizeof(addr);
+
+	if (getsockname(this->sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen) == -1)
+		throw std::runtime_error(std::string("Server::port: std::runtime_error: getsockname: ") + strerror(errno));
+
+	if (addr.ss_family == AF_INET)
+		return ntohs(reinterpret_cast<sockaddr_in *>(&addr)->sin_port);
+
+	return ntohs(reinterpret_cast<sockaddr_in6 *>(&addr)->sin6_port);
+}
+
+void Server::run(void) throw(std::runtime_error)
+{
+	epoll_event hints;
+	int nfds, connfd, nread;
+	sockaddr_storage addr;
+	socklen_t addrlen;
+
+	hints.events = EPOLLIN;
+	hints.data.fd = this->sockfd;
+
+	if (epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->sockfd, &hints) == -1)
+		throw std::runtime_error(std::string("Server::run: std::runtime_error: epoll_ctl (add ipv4 listening socket): ") + strerror(errno));
+
+	while (true)
+	{
+		nfds = epoll_wait(this->epfd, this->events, this->maxevents, -1);
+
+		if (nfds == -1)
+			throw std::runtime_error(std::string("Server::run: std::runtime_error: epoll_wait: ") + strerror(errno));
+
+		for (int i = 0; i < nfds; ++i)
 		{
-			std::cerr << "Error: close: " << strerror(errno) << std::endl;
+			if (this->events[i].data.fd == this->sockfd)
+			{
+				addrlen = sizeof(addr);
+				connfd = accept(this->events[i].data.fd, reinterpret_cast<sockaddr *>(&addr), &addrlen);
 
-			freeaddrinfo(addr);
+				if (connfd == -1)
+					throw std::runtime_error(std::string("Server::run: std::runtime_error: accept: ") + strerror(errno));
 
-			throw GetAddrException();
+				if (fcntl(connfd, F_SETFL, O_NONBLOCK) == -1)
+					throw std::runtime_error(std::string("Server::run: std::runtime_error: fcntl: ") + strerror(errno));
+
+				hints.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
+				hints.data.fd = connfd;
+
+				if (epoll_ctl(this->epfd, EPOLL_CTL_ADD, connfd, &hints) == -1)
+					throw std::runtime_error(std::string("Server::run: std::runtime_error: epoll_ctl (add connection socket): ") + strerror(errno));
+
+				messages[this->events[i].data.fd] = "";
+			}
+			else
+			{
+				nread = recv(this->events[i].data.fd, this->msgbuf, this->bufsize, MSG_DONTWAIT);
+
+				if (!nread)
+				{
+					if (epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->events[i].data.fd, &hints) == -1)
+						throw std::runtime_error(std::string("Server::run: std::runtime_error: epoll_ctl (remove connection socket): ") + strerror(errno));
+
+					messages.erase(this->events[i].data.fd);
+
+					if (close(this->events[i].data.fd) == -1)
+						throw std::runtime_error(std::string("Server::run: std::runtime_error: close: ") + strerror(errno));
+
+					continue;
+				}
+
+				if (nread == -1)
+				{
+					if (errno == EAGAIN && errno == EWOULDBLOCK)
+						continue;
+
+					throw std::runtime_error(std::string("Server::run: std::runtime_error: recv: ") + strerror(errno));
+				}
+
+				if (this->msgbuf[nread - 1] != '\0')
+					this->msgbuf[nread] = '\0';
+
+				messages[this->events[i].data.fd] += this->msgbuf;
+
+				if (*messages[this->events[i].data.fd].rbegin() == '\n')
+				{
+					std::clog << messages[this->events[i].data.fd];
+
+					messages[this->events[i].data.fd].clear();
+				}
+			}
 		}
 	}
 
-	if (this->_sockfd == -1)
-	{
-		std::cerr << "Error: socket: " << strerror(errno) << std::endl;
-
-		freeaddrinfo(addr);
-
-		throw GetAddrException();
-	}
-
-	if (info == NULL)
-	{
-		std::cerr << "Error: bind: " << strerror(errno) << std::endl;
-
-		freeaddrinfo(addr);
-
-		throw GetAddrException();
-	}
-
-	if (getsockname(this->_sockfd, info->ai_addr, &info->ai_addrlen) == -1)
-	{
-		std::cerr << "Error: getsockname: " << strerror(errno) << std::endl;
-
-		if (close(this->_sockfd) == -1)
-			std::cerr << "Error: close: " << strerror(errno) << std::endl;
-
-		freeaddrinfo(addr);
-
-		throw GetAddrException();
-	}
-
-	std::cout << "Info: IRC server initialized with port: ";
-
-	if (info->ai_family == AF_INET)
-		std::cout << ntohs(reinterpret_cast<sockaddr_in *>(info->ai_addr)->sin_port);
-	else
-		std::cout << ntohs(reinterpret_cast<sockaddr_in6 *>(info->ai_addr)->sin6_port);
-
-	std::cout << std::endl;
-
-	freeaddrinfo(addr);
-}
-
-void Server::stop() throw()
-{
-	if (close(this->_sockfd) == -1)
-	{
-		std::cerr << "Error: close: " << strerror(errno) << std::endl;
-		
-		throw SocketErrorException();
-	}
-}
-
-void Server::addChannel(const Channel& channel) throw() {
-    if (_channels.size() >= MAX_CHANNELS) {
-        std::cerr << "Error: Maximum number of channels reached" << std::endl;
-        return;
-    }
-    _channels.push_back(channel);
-}
-
-void Server::removeChannel(const Channel& channel) throw() {
-    _channels.erase(std::remove(_channels.begin(), _channels.end(), channel), _channels.end());
-}
-
-void Server::addClient(const Client& client) throw() {
-    if (_clients.size() >= MAX_CLIENTS) {
-        std::cerr << "Error: Maximum number of clients reached" << std::endl;
-        return;
-    }
-    _clients.push_back(client);
-}
-
-void Server::removeClient(const Client& client) throw() {
-    _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
+	return;
 }
