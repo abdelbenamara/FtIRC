@@ -5,23 +5,25 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/14 22:40:07 by abenamar          #+#    #+#             */
-/*   Updated: 2024/07/15 03:16:09 by abenamar         ###   ########.fr       */
+/*   Created: 2024/08/07 12:37:14 by abenamar          #+#    #+#             */
+/*   Updated: 2024/08/07 23:19:08 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __IRCSERV_HPP__
 #define __IRCSERV_HPP__
 
-#include <cerrno>
-#include <cstring>
+#include <csignal>
+#include <exception>
 #include <iostream>
-#include <sstream>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include "Server.hpp"
+
+#ifndef MAX_EVENTS
+#define MAX_EVENTS 16
+#endif
+
+#ifndef BUF_SIZE
+#define BUF_SIZE 1024
+#endif
 
 #endif
