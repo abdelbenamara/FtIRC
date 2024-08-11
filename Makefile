@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/08/08 02:34:15 by abenamar         ###   ########.fr        #
+#    Updated: 2024/08/11 14:29:50 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,7 @@ NAME := ircserv
 
 INCLUDES := -I$(CURDIR)
 
-SRCS := ServerUtils.cpp
-SRCS += Server.cpp
+SRCS := Server.cpp
 SRCS += ircserv.cpp
 
 OBJS := $(SRCS:.cpp=.o)
