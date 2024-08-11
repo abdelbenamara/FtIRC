@@ -6,11 +6,16 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/07 22:20:40 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/11 14:32:46 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ircserv.hpp"
+#include <csignal>
+#include <exception>
+#include <iostream>
+#include "Server.hpp"
+
+void noop(int /* signum */) throw() { return; }
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +30,10 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		server = new Server(argv[1], argv[2], MAX_EVENTS, BUF_SIZE);
+		server = (Server::Builder())
+					 .withNumericServ(argv[1])
+					 .withPassword(argv[2])
+					 .build();
 	}
 	catch (std::exception const &e)
 	{
@@ -36,10 +44,10 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		if (std::signal(SIGINT, ServerUtils::interrupt) == SIG_ERR)
+		if (std::signal(SIGINT, ::noop) == SIG_ERR)
 			throw std::runtime_error(std::string("std::runtime_error: std::signal (SIGINT): ") + strerror(errno));
 
-		if (std::signal(SIGQUIT, ServerUtils::interrupt) == SIG_ERR)
+		if (std::signal(SIGQUIT, ::noop) == SIG_ERR)
 			throw std::runtime_error(std::string("std::runtime_error: std::signal (SIGQUIT): ") + strerror(errno));
 
 		std::cout << "Info: IRC server listening on port: " << server->port() << std::endl;
