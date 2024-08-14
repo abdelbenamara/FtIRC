@@ -30,8 +30,8 @@ private :
 	std::string _topic;
 	std::string _key;
 	int			_limit;
+	bool		_invite_only;
 	std::vector<Client *> operators;
 	std::vector<Client *> clients;
-
 };
 #endif
