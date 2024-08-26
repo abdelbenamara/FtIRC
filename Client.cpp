@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:33:18 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:09:59 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,16 +34,16 @@ Client::~Client(void) throw()
 
 Client &Client::operator=(Client const & /* rhs */) throw() { return (*this); }
 
-bool Client::appendInput(char *const buffer)
+bool Client::appendInput(void)
 {
-	ssize_t rbcap, nread;
+	ssize_t incap, nread;
 
 	try
 	{
 		do
 		{
-			rbcap = Message::MAXSIZE - this->input.length();
-			nread = recv(connfd, buffer, rbcap, 0);
+			incap = Message::MAXSIZE - this->input.length();
+			nread = recv(connfd, Message::BUFFER, incap, 0);
 
 			if (nread == -1)
 			{
@@ -56,9 +56,9 @@ bool Client::appendInput(char *const buffer)
 			if (!nread)
 				return (false);
 
-			this->input.append(buffer, nread);
+			this->input.append(Message::BUFFER, nread);
 			this->extractMessage(this->input.find_first_of(Message::CRLF, this->input.length() - nread));
-		} while (rbcap == nread);
+		} while (incap == nread);
 	}
 	catch (std::exception const &e)
 	{

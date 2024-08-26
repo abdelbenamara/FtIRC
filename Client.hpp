@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:35:53 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:08:52 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ public:
 	Client(int const connfd);
 	virtual ~Client(void) throw();
 
-	bool appendInput(char *const buffer);
+	bool appendInput(void);
 	bool hasMessage(void) const throw();
 	Message const &message(void);
 	void dropMessage(void) throw();
