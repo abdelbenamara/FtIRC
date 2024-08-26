@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/08/11 14:29:50 by abenamar         ###   ########.fr        #
+#    Updated: 2024/08/23 23:12:05 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,12 @@ NAME := ircserv
 
 INCLUDES := -I$(CURDIR)
 
-SRCS := Server.cpp
+SRCS := RuntimeErrno.cpp
+SRCS += Message.cpp
+SRCS += MessageBuilder.cpp
+SRCS += Client.cpp 
+SRCS += Server.cpp
+SRCS += ServerBuilder.cpp
 SRCS += ircserv.cpp
 
 OBJS := $(SRCS:.cpp=.o)
