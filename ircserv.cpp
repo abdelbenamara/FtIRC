@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:22:33 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:10:16 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static void run(Server *const server) throw(std::runtime_error)
 
 				if (fd == server->getSocket())
 					server->addClient();
-				else if (!server->getClient(fd)->appendInput(Message::BUFFER))
+				else if (!server->getClient(fd)->appendInput())
 					server->removeClient(fd);
 			}
 
