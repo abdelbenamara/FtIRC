@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:50:43 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/27 11:50:02 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ char Message::BUFFER[Message::MAXSIZE];
 
 Message::Message(void) : input(), prefix(), command(), parameters() { return; }
 
-Message::Message(std::string const &input) : input(input), prefix(), command(), parameters() { return; }
+Message::Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command), parameters(parameters) { return; }
 
 Message::Message(Message const &src) : input(src.input), prefix(src.prefix), command(src.command), parameters(src.parameters) { return; }
 

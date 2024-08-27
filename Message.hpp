@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:45:26 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/27 11:49:06 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ public:
     static std::size_t const MAXSIZE, MAXCHARS;
     static char BUFFER[];
 
-    Message(std::string const &input);
     Message(Message const &src);
     virtual ~Message(void);
 
@@ -54,6 +53,7 @@ private:
     std::vector<std::string> const parameters;
 
     Message(void);
+    Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
 
     Message &operator=(Message const & /* rhs */) throw();
 };
