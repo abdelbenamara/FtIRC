@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 12:51:08 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/27 11:50:27 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,4 +27,4 @@ Message::Builder &Message::Builder::withInput(std::string const &input)
     return (*this);
 }
 
-Message Message::Builder::build(void) { return (Message(this->input)); }
+Message Message::Builder::build(void) { return (Message(this->input, this->prefix, this->command, this->parameters)); }
