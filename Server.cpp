@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 11:42:16 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/27 10:39:08 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ int Server::waitForEvents(void)
 	return (this->nfds);
 }
 
-int const &Server::getEventSocket(int const &pos) const
+int Server::getEventSocket(int const &pos) const
 {
 	std::ostringstream err;
 
