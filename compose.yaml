@@ -1,0 +1,17 @@
+services:
+  ft_irc:
+    container_name: ft_irc
+    build:
+      context: .
+      target: final
+    command: [ "password" ]
+    ports:
+      - 4242:4242
+    tty: true
+    networks:
+      - ft_irc
+
+networks:
+  ft_irc:
+    name: ft_irc
+    driver: bridge
