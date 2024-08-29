@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Message.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/27 11:50:02 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/08/29 21:07:01 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,25 @@ Message::Message(void) : input(), prefix(), command(), parameters() { return; }
 
 Message::Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command), parameters(parameters) { return; }
 
-Message::Message(Message const &src) : input(src.input), prefix(src.prefix), command(src.command), parameters(src.parameters) { return; }
+Message::Message(Message const &src) : input(src.input), prefix(src.prefix),
+										command(src.command),
+										user(src.user), host(src.host), name(src.name),
+										parameters(src.parameters) { return; }
 
 Message::~Message(void) { return; }
 
 Message &Message::operator=(Message const & /* rhs */) throw() { return (*this); }
 
 std::string const &Message::getInput(void) const throw() { return (this->input); }
+
+std::string const &Message::getPrefix(void) const throw() { return (this->prefix); }
+
+std::string const &Message::getCommand(void) const throw() { return (this->command); }
+
+std::vector<std::string> const &Message::getParameters(void) const throw() { return (this->parameters); }
+
+std::string const &Message::getUser(void) const throw() { return (this->user); }
+
+std::string const &Message::getHost(void) const throw() { return (this->host); }
+
+std::string const &Message::getName(void) const throw() { return (this->name); }
