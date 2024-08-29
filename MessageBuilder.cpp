@@ -6,7 +6,7 @@
 /*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/29 21:33:19 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/08/29 22:31:00 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ bool Message::Builder::checkServ(const std::string& name)
 
 bool Message::Builder::isspecial(char c)
 {
-	return c == '-' || c == '[' || c == ']' || c == '\\' || c == '`' || c == '^' || c == '{' || c == '}';
+	return c == '_' || c == '[' || c == ']' || c == '\\' || c == '`' || c == '^' || c == '{' || c == '}' || c == '|';
 }
 
 bool Message::Builder::checkNick(const std::string& name)
@@ -157,7 +157,7 @@ bool Message::Builder::isValidCmd(const std::string& command)
 
 void Message::Builder::withCommand(size_t &pos, const std::string& message)
 {
-	
+	// :nick!user@host PRIVMSG #channel :Hello, World!
 	size_t end = message.find(' ', pos);
 	if (end == std::string::npos)
 	{
@@ -241,11 +241,15 @@ bool Message::Builder::checkTrailing(const std::string& trailing)
 
 bool Message::Builder::checkParams(const std::vector<std::string>& params)
 {
+	if (params[0][0] == ':')
+	{
+		return false;
+	}
 	for (size_t i = 0; i < params.size(); i++)
 	{
 		if (params[i][0] == ':')
 		{
-            if (!checkTrailing(params[i].substr(1)))
+            if (!checkTrailing(params[i]))
 			{
                 return false;
             }
@@ -276,7 +280,8 @@ void Message::Builder::withParams(size_t &pos, const std::string& message)
 		size_t start = pos + 1;
 		size_t nbParams = 0;
 
-		while (nbParams < 15 && start < message.length())
+		// CMD PARAM1 PARAM2 ... PARAM14 :PARAM3
+		while (nbParams < 14 && start < message.length())
 		{
 			if (message[start] == ':')
 			{
@@ -298,13 +303,13 @@ void Message::Builder::withParams(size_t &pos, const std::string& message)
 			start = end + 1;
 		}
 
-		if (nbParams == 15 && start < message.length())
+		if (nbParams == 14 && start < message.length())
 		{
 			// Ajout de : au dernier parametre pour indiquer que c'est un trailing parameter
 			this->parameters.push_back(message.substr(start));
 			if (this->parameters.back()[0] != ':')
 			{
-				throw std::invalid_argument("Error: MessageBuilder.cpp::withParams: The 15th parameter must start with ':' to be a trailing parameter.");
+				this->parameters.back().insert(0, ":");
 			}
 		}
 
@@ -312,10 +317,6 @@ void Message::Builder::withParams(size_t &pos, const std::string& message)
 		{
 			throw std::invalid_argument("Error: MessageBuilder.cpp::withParams: Invalid parameters.");
 		}
-	}
-	else
-	{
-		throw std::invalid_argument("Error: MessageBuilder.cpp::withParams: Expected parameters after command.");
 	}
 }
 
