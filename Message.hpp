@@ -6,7 +6,7 @@
 /*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/29 21:04:03 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/08/29 22:44:14 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,9 @@ private:
     std::vector<std::string> const parameters;
 
     Message(void);
-    Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
+    Message(std::string const &input, std::string const &prefix, std::string const &command,
+			std::string const &user, std::string const &host, std::string const &name,
+			std::vector<std::string> const &parameters);
 
     Message &operator=(Message const & /* rhs */) throw();
 };

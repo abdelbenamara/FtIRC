@@ -6,7 +6,7 @@
 /*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/29 21:07:01 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/08/29 22:43:41 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,14 @@ std::size_t const Message::MAXSIZE = 512, Message::MAXCHARS = Message::MAXSIZE -
 
 char Message::BUFFER[Message::MAXSIZE];
 
-Message::Message(void) : input(), prefix(), command(), parameters() { return; }
+Message::Message(void) : input(), prefix(), command(),
+						user(), host(), name(), parameters() { return; }
 
-Message::Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command), parameters(parameters) { return; }
+Message::Message(std::string const &input, std::string const &prefix, std::string const &command,
+						std::string const &user, std::string const &host, std::string const &name,
+						std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command),
+																	user(user), host(host), name(name),
+																	parameters(parameters) { return; }
 
 Message::Message(Message const &src) : input(src.input), prefix(src.prefix),
 										command(src.command),

@@ -6,16 +6,18 @@
 /*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/29 22:31:00 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/08/29 22:45:08 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Message.hpp"
 #include <iostream>
 
-Message::Builder::Builder(void) : input(), prefix(), command(), parameters() { return; }
+Message::Builder::Builder(void) : input(), prefix(), command(),
+									user(), host(), name(), parameters() { return; }
 
-Message::Builder::Builder(Builder const & /* src */) : input(), prefix(), command(), parameters() { return; }
+Message::Builder::Builder(Builder const & /* src */) : input(), prefix(), command(),
+									user(), host(), name(), parameters() { return; }
 
 Message::Builder::~Builder(void) throw() { return; }
 
@@ -103,6 +105,7 @@ void Message::Builder::withPrefix(size_t &pos, const std::string& message)
 		this->prefix = message.substr(pos, end - pos);
 		pos = end + 1;
 
+		std::cout << "Prefix: " << this->prefix << std::endl;
 		size_t isUser = this->prefix.find('!');
 		size_t isHost = this->prefix.find('@');
 
@@ -336,4 +339,6 @@ Message::Builder &Message::Builder::withInput(std::string const &input)
 	return (*this);
 }
 
-Message Message::Builder::build(void) { return (Message(this->input, this->prefix, this->command, this->parameters)); }
+Message Message::Builder::build(void) { return (Message(this->input, this->prefix, this->command,
+														this->user, this->host, this->name,
+														this->parameters)); }

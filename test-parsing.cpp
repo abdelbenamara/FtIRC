@@ -6,7 +6,7 @@
 /*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:00:00 by karimasadyk       #+#    #+#             */
-/*   Updated: 2024/08/29 21:37:45 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/08/29 22:36:06 by karimasadyk      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 #include <iostream>
 #include <vector>
 
-void printMessage(const Message& message) {
+void printMessage(const Message& message)
+{
     std::cout << "Input: |" << message.getInput() << "|" << std::endl;
     std::cout << "Prefix: |" << message.getPrefix() << "|" << std::endl;
     std::cout << "Command: |" << message.getCommand() << "|" << std::endl;
@@ -24,7 +25,8 @@ void printMessage(const Message& message) {
     std::cout << "Parameters:" << std::endl;
 
     std::vector<std::string> params = message.getParameters();
-    for (size_t i = 0; i < params.size(); i++) {
+    for (size_t i = 0; i < params.size(); i++)
+	{
         std::cout << "  [" << i << "]: |" << params[i] << std::endl;
     }
 }
@@ -34,6 +36,8 @@ void printMessage(const Message& message) {
 int main() {
     std::string input1 = ":nick!user@host PRIVMSG #channel :Hello, World!";
     std::string input2 = "NICK newnick";
+    //std::string input2 = "NICK newnick";
+    
 
     try {
         // Test case 1
