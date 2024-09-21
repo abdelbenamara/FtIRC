@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/27 10:38:58 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/09/21 21:57:45 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,8 @@ public:
 	in_port_t port(void) const;
 	int waitForEvents(void);
 	int getEventSocket(int const &pos) const;
-	int const &getSocket(void) const throw();
+	int getSocket(void) const throw();
+	std::string const &getPassword(void) const throw();
 	Client *const &getClient(int const &connfd);
 	void addClient(void);
 	void removeClient(int const &connfd);

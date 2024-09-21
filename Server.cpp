@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/27 10:39:08 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/09/21 21:57:52 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,15 +65,17 @@ int Server::getEventSocket(int const &pos) const
 
 	if (pos < 0 || this->nfds <= pos)
 	{
-		err << "Server::getEventSocket:: std::range_error: `" << pos << "': parameter must be between 0 and the value returned by `Server::waitForEvents' excluded";
+		err << "Server::getEventSocket:: std::out_of_range: `" << pos << "': parameter must be between 0 and the value returned by `Server::waitForEvents' excluded";
 
-		throw std::range_error(err.str());
+		throw std::out_of_range(err.str());
 	}
 
 	return (this->events[pos].data.fd);
 }
 
-int const &Server::getSocket(void) const throw() { return (this->sockfd); }
+int Server::getSocket(void) const throw() { return (this->sockfd); }
+
+std::string const &Server::getPassword(void) const throw() { return (this->password); }
 
 Client *const &Server::getClient(int const &connfd)
 {
@@ -81,9 +83,9 @@ Client *const &Server::getClient(int const &connfd)
 
 	if (this->clients.find(connfd) == this->clients.end())
 	{
-		err << "Server::getClient: std::runtime_error: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
+		err << "Server::getClient: std::invalid_argument: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
 
-		throw std::runtime_error(err.str());
+		throw std::invalid_argument(err.str());
 	}
 
 	return (this->clients[connfd]);
@@ -126,26 +128,19 @@ void Server::removeClient(int const &connfd)
 {
 	std::ostringstream err;
 
-	try
+	if (this->clients.find(connfd) == this->clients.end())
 	{
-		if (this->clients.find(connfd) == this->clients.end())
-		{
-			err << "std::runtime_error: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
+		err << "Server::removeClient: std::invalid_argument: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
 
-			throw std::runtime_error(err.str());
-		}
-
-		if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, connfd, this->events) == -1)
-			throw RuntimeErrno("epoll_ctl");
-
-		delete this->clients[connfd];
-
-		this->clients.erase(connfd);
+		throw std::invalid_argument(err.str());
 	}
-	catch (std::exception const &e)
-	{
-		throw std::runtime_error("Server::removeClient: " + std::string(e.what()));
-	}
+
+	if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, connfd, this->events) == -1)
+		throw RuntimeErrno("Server::removeClient", "epoll_ctl");
+
+	delete this->clients[connfd];
+
+	this->clients.erase(connfd);
 
 	return;
 }
