@@ -6,15 +6,20 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 14:10:16 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/09/21 22:23:45 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <cerrno>
 #include <csignal>
+#include <cstring>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
 #include "Client.hpp"
+#include "Command.hpp"
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
 #include "Server.hpp"
@@ -24,7 +29,8 @@ static void noop(int /* signum */) throw() { return; }
 static void run(Server *const server) throw(std::runtime_error)
 {
 	std::map<int, Client *const>::const_iterator it;
-	int nfds, fd;
+	Message const *message;
+	int nfds, n;
 
 	while (true)
 	{
@@ -34,21 +40,43 @@ static void run(Server *const server) throw(std::runtime_error)
 		{
 			for (int i = 0; i < nfds; ++i)
 			{
-				fd = server->getEventSocket(i);
+				n = server->getEventSocket(i);
 
-				if (fd == server->getSocket())
+				if (n == server->getSocket())
 					server->addClient();
-				else if (!server->getClient(fd)->appendInput())
-					server->removeClient(fd);
+				else if (!server->getClient(n)->updateInput())
+					server->removeClient(n);
 			}
 
 			for (it = server->getClientsBegin(); it != server->getClientsEnd(); ++it)
 			{
 				while (it->second->hasMessage())
 				{
-					std::cout << "Info: Client: " << it->second->message().getInput();
+					message = &it->second->message();
 
-					it->second->dropMessage();
+					std::cout << "Info: Client: [prefix=" << message->getPrefix() << ", command=" << message->getCommand() << ", parameters=";
+
+					for (std::vector<std::string>::const_iterator p = message->getParameters().begin(); p != message->getParameters().end(); ++p)
+					{
+						std::cout << *p;
+
+						if (p + 1 != message->getParameters().end())
+							std::cout << ',';
+					}
+
+					std::cout << "] " << message->getInput();
+
+					if (Command::APPLY.find(message->getCommand()) == Command::APPLY.end())
+					{
+						n = send(it->second->getSocket(), ("421 " + message->getCommand() + " :Unknown command\r\n").c_str(), message->getCommand().length() + 23, 0);
+
+						if (n == -1)
+							throw RuntimeErrno("::run", "send");
+					}
+					else
+						Command::APPLY.at(message->getCommand());
+
+					it->second->removeMessage();
 				}
 			}
 		}
