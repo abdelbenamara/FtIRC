@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 14:09:59 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/09/21 21:43:49 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Client::Client(void) : connfd(-1) { return; }
 
-Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), input(), password(NULL), messages()
+Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), input(), nickname(), username(), messages()
 {
 	this->input.reserve(Message::MAXSIZE);
 
@@ -25,8 +25,6 @@ Client::Client(Client const & /* src */) : connfd(-1) { return; }
 
 Client::~Client(void) throw()
 {
-	delete password;
-
 	close(this->connfd);
 
 	return;
@@ -34,7 +32,9 @@ Client::~Client(void) throw()
 
 Client &Client::operator=(Client const & /* rhs */) throw() { return (*this); }
 
-bool Client::appendInput(void)
+int Client::getSocket(void) const throw() { return (this->connfd); }
+
+bool Client::updateInput(void)
 {
 	ssize_t incap, nread;
 
@@ -57,12 +57,12 @@ bool Client::appendInput(void)
 				return (false);
 
 			this->input.append(Message::BUFFER, nread);
-			this->extractMessage(this->input.find_first_of(Message::CRLF, this->input.length() - nread));
+			this->addMessage(this->input.find_first_of(Message::CRLF, this->input.length() - nread));
 		} while (incap == nread);
 	}
 	catch (std::exception const &e)
 	{
-		throw std::runtime_error("Client::appendInput: " + std::string(e.what()));
+		throw std::runtime_error("Client::updateInput: " + std::string(e.what()));
 	}
 
 	return (true);
@@ -78,17 +78,26 @@ Message const &Client::message(void)
 	return (this->messages.front());
 }
 
-void Client::dropMessage(void) throw()
+void Client::removeMessage(void) throw()
 {
 	if (this->messages.empty())
-		throw std::runtime_error("Client::dropMessage: std::runtime_error: nothing to drop, `Client::hasMessage' must return true to call `Client::dropMessage'");
+		throw std::runtime_error("Client::removeMessage: std::runtime_error: no message, `Client::hasMessage' must return true to call `Client::removeMessage'");
 
 	this->messages.pop();
 
 	return;
 }
 
-void Client::extractMessage(std::size_t const crlfpos)
+bool Client::isAuthorized(void) const throw() { return (this->authorized); }
+
+void Client::setAuthorized(bool const isAuthorized) throw()
+{
+	this->authorized = isAuthorized;
+
+	return;
+}
+
+void Client::addMessage(std::size_t const crlfpos)
 {
 	if (crlfpos == std::string::npos)
 	{
@@ -101,21 +110,14 @@ void Client::extractMessage(std::size_t const crlfpos)
 		return;
 	}
 
-	try
-	{
-		if (!this->isMessageTooLong && 0 < crlfpos && crlfpos <= Message::MAXCHARS)
-			this->messages.push(Message::Builder()
-									.withInput(this->input.substr(0, crlfpos) + Message::CRLF)
-									.build());
-	}
-	catch (std::exception const &e)
-	{
-		throw std::runtime_error("Client::appendInput: " + std::string(e.what()));
-	}
+	if (!this->isMessageTooLong && 0 < crlfpos && crlfpos <= Message::MAXCHARS)
+		this->messages.push(Message::Builder()
+								.withInput(this->input.substr(0, crlfpos) + Message::CRLF)
+								.build());
 
 	this->isMessageTooLong = false;
 
 	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
 
-	return (this->extractMessage(this->input.find_first_of(Message::CRLF)));
+	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
 }

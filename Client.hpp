@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 14:08:52 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/09/21 21:43:30 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,18 @@ public:
 	Client(int const connfd);
 	virtual ~Client(void) throw();
 
-	bool appendInput(void);
+	int getSocket(void) const throw();
+	bool updateInput(void);
 	bool hasMessage(void) const throw();
 	Message const &message(void);
-	void dropMessage(void) throw();
+	void removeMessage(void) throw();
+	bool isAuthorized(void) const throw();
+	void setAuthorized(bool const isAuthorized) throw();
 
 private:
 	int const connfd;
-	bool isMessageTooLong;
-	std::string input, *password;
+	bool isMessageTooLong, authorized;
+	std::string input, nickname, username;
 	std::queue<Message> messages;
 
 	Client(void);
@@ -44,7 +47,7 @@ private:
 
 	Client &operator=(Client const & /* rhs */) throw();
 
-	void extractMessage(std::size_t const crlfpos);
+	void addMessage(std::size_t const crlfpos);
 };
 
 #endif
