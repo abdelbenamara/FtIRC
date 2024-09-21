@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/08/23 23:12:05 by abenamar         ###   ########.fr        #
+#    Updated: 2024/09/21 22:05:45 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ SRCS += MessageBuilder.cpp
 SRCS += Client.cpp 
 SRCS += Server.cpp
 SRCS += ServerBuilder.cpp
+SRCS += Command.cpp
 SRCS += ircserv.cpp
 
 OBJS := $(SRCS:.cpp=.o)
