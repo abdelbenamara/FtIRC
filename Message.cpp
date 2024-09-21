@@ -3,14 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Message.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: karimasadykova <karimasadykova@student.    +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/29 22:43:41 by karimasadyk      ###   ########.fr       */
+/*   Updated: 2024/09/21 19:40:45 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Message.hpp"
+
+std::locale const Message::LOCALE;
 
 std::string const Message::CRLF = "\r\n";
 
@@ -18,19 +20,11 @@ std::size_t const Message::MAXSIZE = 512, Message::MAXCHARS = Message::MAXSIZE -
 
 char Message::BUFFER[Message::MAXSIZE];
 
-Message::Message(void) : input(), prefix(), command(),
-						user(), host(), name(), parameters() { return; }
+Message::Message(void) : input(), prefix(), command(), parameters() { return; }
 
-Message::Message(std::string const &input, std::string const &prefix, std::string const &command,
-						std::string const &user, std::string const &host, std::string const &name,
-						std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command),
-																	user(user), host(host), name(name),
-																	parameters(parameters) { return; }
+Message::Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters) : input(input), prefix(prefix), command(command), parameters(parameters) { return; }
 
-Message::Message(Message const &src) : input(src.input), prefix(src.prefix),
-										command(src.command),
-										user(src.user), host(src.host), name(src.name),
-										parameters(src.parameters) { return; }
+Message::Message(Message const &src) : input(src.input), prefix(src.prefix), command(src.command), parameters(src.parameters) { return; }
 
 Message::~Message(void) { return; }
 
@@ -44,8 +38,24 @@ std::string const &Message::getCommand(void) const throw() { return (this->comma
 
 std::vector<std::string> const &Message::getParameters(void) const throw() { return (this->parameters); }
 
-std::string const &Message::getUser(void) const throw() { return (this->user); }
+std::string Message::toString(void) const
+{
+    std::ostringstream o;
 
-std::string const &Message::getHost(void) const throw() { return (this->host); }
+    o << "[Message ";
 
-std::string const &Message::getName(void) const throw() { return (this->name); }
+    if (!this->prefix.empty())
+        o << "prefix=" << this->prefix << ", ";
+
+    o << "command=" << this->command;
+
+    if (!this->parameters.empty())
+        o << ", parameters=" << this->parameters.front();
+
+    for (std::vector<std::string>::const_iterator it = ++this->parameters.begin(); it != this->parameters.end(); ++it)
+        o << " " << *it;
+
+    o << ']';
+
+    return (o.str());
+}
