@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 21:43:49 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/08 20:11:57 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Client::Client(void) : connfd(-1) { return; }
 
-Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), input(), nickname(), username(), messages()
+Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), input(), nickname(), username(), realname(), mode(), messages(), isRegister(false)
 {
 	this->input.reserve(Message::MAXSIZE);
 
@@ -78,7 +78,7 @@ Message const &Client::message(void)
 	return (this->messages.front());
 }
 
-void Client::removeMessage(void) throw()
+void Client::removeMessage(void) throw(std::runtime_error)
 {
 	if (this->messages.empty())
 		throw std::runtime_error("Client::removeMessage: std::runtime_error: no message, `Client::hasMessage' must return true to call `Client::removeMessage'");
@@ -120,4 +120,41 @@ void Client::addMessage(std::size_t const crlfpos)
 	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
 
 	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
+}
+
+void Client::setNickname(std::string nick) throw()
+{
+	this->nickname = nick;
+	
+	return ;
+}
+
+std::string Client::getNickname() throw()
+{
+	return this->nickname;
+}
+
+void Client::setUsername(std::string username) throw()
+{
+	this->username = username;
+}
+
+void Client::setMode(std::string mode) throw()
+{
+	this->mode = mode;
+}
+
+void Client::setRealname(std::string realname) throw()
+{
+	this->realname = realname;
+}
+
+bool Client::isRegistered() throw()
+{
+	return this->isRegister;
+}
+
+void Client::setRegistered(bool state) throw()
+{
+	this->isRegister = state;
 }

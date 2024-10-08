@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 21:57:52 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/08 19:18:16 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,3 +148,13 @@ void Server::removeClient(int const &connfd)
 std::map<int, Client *const>::const_iterator Server::getClientsBegin(void) const throw() { return (this->clients.begin()); }
 
 std::map<int, Client *const>::const_iterator Server::getClientsEnd(void) const throw() { return (this->clients.end()); }
+
+bool Server::isNicknameInUse(std::string nick) const throw()
+{
+    for (std::map<int, Client *const>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->second->getNickname() == nick) {
+            return true;
+        }
+    }
+    return false;
+}

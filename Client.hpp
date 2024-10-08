@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 21:43:30 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/08 20:09:51 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,15 +32,25 @@ public:
 	bool updateInput(void);
 	bool hasMessage(void) const throw();
 	Message const &message(void);
-	void removeMessage(void) throw();
+	void removeMessage(void) throw(std::runtime_error);
 	bool isAuthorized(void) const throw();
 	void setAuthorized(bool const isAuthorized) throw();
+
+	void setNickname(std::string nick) throw();
+	std::string getNickname() throw();
+	void setUsername(std::string username) throw();
+    void setMode(std::string mode) throw();
+    void setRealname(std::string realname) throw();
+	bool isRegistered() throw();
+    void setRegistered(bool state) throw();
 
 private:
 	int const connfd;
 	bool isMessageTooLong, authorized;
-	std::string input, nickname, username;
+	std::string input, nickname, username, realname, mode;
 	std::queue<Message> messages;
+	bool isRegister;
+	
 
 	Client(void);
 	Client(Client const & /* src */);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 21:57:45 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/08 19:18:23 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,8 @@ public:
 	void removeClient(int const &connfd);
 	std::map<int, Client *const>::const_iterator getClientsBegin(void) const throw();
 	std::map<int, Client *const>::const_iterator getClientsEnd(void) const throw();
+
+	bool isNicknameInUse(std::string nick) const throw();
 
 private:
 	static int const MAXEVENTS;
