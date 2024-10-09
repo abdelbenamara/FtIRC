@@ -6,7 +6,7 @@
 /*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/08 17:34:22 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/09 20:16:38 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,14 @@ private:
     static void pass(Client &client, Server const &server);
     static void nick(Client &client, Server const &server);
     static void user(Client &client, Server const &server);
+
+	// static void quit(Client &client, Server const &server);
+	// static void join(Client &client, Server const &server);
+	// static void mode(Client &client, Server const &server);
+	// static void topic(Client &client, Server const &server);
+	// static void invite(Client &client, Server const &server);
+	// static void kick(Client &client, Server const &server);
+	// static void privmsg(Client &client, Server const &server);
 };
 
 #endif

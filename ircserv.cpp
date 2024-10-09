@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 22:23:45 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/09 19:55:05 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ static void run(Server *const server) throw(std::runtime_error)
 							throw RuntimeErrno("::run", "send");
 					}
 					else
-						Command::APPLY.at(message->getCommand());
+						Command::APPLY.at(message->getCommand())(*(it->second), *server);
 
 					it->second->removeMessage();
 				}

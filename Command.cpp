@@ -6,7 +6,7 @@
 /*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/08 20:18:07 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/09 20:23:55 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ void Command::pass(Client &client, Server const &server)
 {
     Message const &message = client.message();
     ssize_t nwrite = 0;
-	std::cout << "bruh" << std::endl;
 
     try
     {
@@ -38,7 +37,10 @@ void Command::pass(Client &client, Server const &server)
         else if (client.isAuthorized())
             nwrite = send(client.getSocket(), "462 :Unauthorized command (already registered)\r\n", 48, 0);
         else if (message.getParameters().at(0) != server.getPassword())
+		{
+			std::cout << "password is wrong" << std::endl;
             nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
+		}
 
         if (nwrite == -1)
             throw RuntimeErrno("send");
@@ -57,11 +59,17 @@ void Command::nick(Client &client, Server const &server)
 {
     Message const &message = client.message();
     ssize_t nwrite = 0;
-
+	//bool const isNicknameFormat = std::find_if((message.getParameters().at(0)).begin(), (message.getParameters().at(0)).end(), Message::Builder::isNotInNicknameFormat) == (message.getParameters().at(0)).end();
+	
     try
     {
         if (message.getParameters().empty())
             nwrite = send(client.getSocket(), "431 :No nickname given\r\n", 24, 0);
+		// else if (isNicknameFormat)
+		// {
+		// 	std::string errorMessage = "432 " + message.getParameters().at(0) + " :Erroneous nickname\r\n";
+        //     nwrite = send(client.getSocket(), errorMessage.c_str(), errorMessage.length(), 0);
+		// }
         else if (server.isNicknameInUse(message.getParameters().at(0)))
 		{
 			std::string errorMessage = "433 " + message.getParameters().at(0) + " :Nickname is already in use\r\n";
@@ -119,3 +127,4 @@ void Command::user(Client &client, Server const &server)
 
 	return ;
 }
+
