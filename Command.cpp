@@ -6,7 +6,7 @@
 /*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/09 20:23:55 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/09 21:10:43 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,7 @@ void Command::pass(Client &client, Server const &server)
         else if (client.isAuthorized())
             nwrite = send(client.getSocket(), "462 :Unauthorized command (already registered)\r\n", 48, 0);
         else if (message.getParameters().at(0) != server.getPassword())
-		{
-			std::cout << "password is wrong" << std::endl;
             nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
-		}
 
         if (nwrite == -1)
             throw RuntimeErrno("send");
