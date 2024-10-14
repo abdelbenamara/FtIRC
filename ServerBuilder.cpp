@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 13:15:25 by abenamar          #+#    #+#             */
-/*   Updated: 2024/08/26 11:07:08 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/13 20:53:56 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ Server *Server::Builder::build(void)
 	return (server);
 }
 
-std::string const Server::Builder::gai_strerror(int errcode)
+std::string const Server::Builder::gai_strerror(int const &errcode)
 {
 	switch (errcode)
 	{
