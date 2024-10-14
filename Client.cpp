@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/08 20:11:57 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/14 15:45:12 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 
 Client::Client(void) : connfd(-1) { return; }
 
-Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), input(), nickname(), username(), realname(), mode(), messages(), isRegister(false)
+Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), identified(false), input(), nickname(), messages()
 {
 	this->input.reserve(Message::MAXSIZE);
+	this->nickname.reserve(9);
 
 	return;
 }
@@ -78,7 +79,7 @@ Message const &Client::message(void)
 	return (this->messages.front());
 }
 
-void Client::removeMessage(void) throw(std::runtime_error)
+void Client::removeMessage(void)
 {
 	if (this->messages.empty())
 		throw std::runtime_error("Client::removeMessage: std::runtime_error: no message, `Client::hasMessage' must return true to call `Client::removeMessage'");
@@ -90,14 +91,34 @@ void Client::removeMessage(void) throw(std::runtime_error)
 
 bool Client::isAuthorized(void) const throw() { return (this->authorized); }
 
-void Client::setAuthorized(bool const isAuthorized) throw()
+void Client::setAuthorized(bool const &isAuthorized) throw()
 {
 	this->authorized = isAuthorized;
 
 	return;
 }
 
-void Client::addMessage(std::size_t const crlfpos)
+bool Client::isIdentified(void) throw() { return (false); }
+
+void Client::identify(void) throw()
+{
+	this->identified = true;
+
+	return;
+}
+
+std::string const &Client::getNickname(void) const throw() { return (this->nickname); }
+
+void Client::setNickname(std::string const &nickname) throw()
+{
+	this->nickname = nickname;
+
+	return;
+}
+
+bool Client::isRegistered(void) throw() { return (this->authorized && this->identified && !this->nickname.empty()); }
+
+void Client::addMessage(std::size_t const &crlfpos)
 {
 	if (crlfpos == std::string::npos)
 	{
@@ -120,41 +141,4 @@ void Client::addMessage(std::size_t const crlfpos)
 	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
 
 	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
-}
-
-void Client::setNickname(std::string nick) throw()
-{
-	this->nickname = nick;
-	
-	return ;
-}
-
-std::string Client::getNickname() throw()
-{
-	return this->nickname;
-}
-
-void Client::setUsername(std::string username) throw()
-{
-	this->username = username;
-}
-
-void Client::setMode(std::string mode) throw()
-{
-	this->mode = mode;
-}
-
-void Client::setRealname(std::string realname) throw()
-{
-	this->realname = realname;
-}
-
-bool Client::isRegistered() throw()
-{
-	return this->isRegister;
-}
-
-void Client::setRegistered(bool state) throw()
-{
-	this->isRegister = state;
 }
