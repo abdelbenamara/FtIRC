@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 20:13:07 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/13 12:00:23 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,22 +96,11 @@ Message Message::Builder::build(void)
     return (Message(this->input, this->prefix, this->command, this->parameters));
 }
 
-bool Message::Builder::isNotInServernameFormat(char const c) { return (c != '.' && c != '-' && !std::isalnum(c, Message::LOCALE)); }
-
-bool Message::Builder::isNotInNicknameFormat(char const c)
-{
-    static std::string const special = "[]\\`_^{|}";
-
-    return (c != '-' && special.find(c) == std::string::npos && !std::isalnum(c, Message::LOCALE));
-}
-
-bool Message::Builder::isNotInCommandFormat(char const c) { return (!std::isalpha(c, Message::LOCALE)); }
-
 void Message::Builder::setPrefix(std::string const &prefix)
 {
     static std::string const special = "[]\\`_^{|}";
-    bool const isServernameFormat = std::find_if(prefix.begin(), prefix.end(), Message::Builder::isNotInServernameFormat) == prefix.end();
-    bool const isNicknameFormat = std::find_if(prefix.begin(), prefix.end(), Message::Builder::isNotInNicknameFormat) == prefix.end();
+    bool const isServernameFormat = std::find_if(prefix.begin(), prefix.end(), Message::isNotInServernameFormat) == prefix.end();
+    bool const isNicknameFormat = std::find_if(prefix.begin(), prefix.end(), Message::isNotInNicknameFormat) == prefix.end();
 
     if (!isServernameFormat && !isNicknameFormat)
         throw std::invalid_argument("std::invalid_argument: prefix is neither a servername nor a nickname");
@@ -159,7 +148,7 @@ void Message::Builder::setCommand(std::string const &command)
             throw std::domain_error("std::domain_error: command response must have only digit characters");
     }
 
-    if (std::find_if(command.begin(), command.end(), Message::Builder::isNotInCommandFormat) != command.end())
+    if (std::find_if(command.begin(), command.end(), Message::isNotInCommandFormat) != command.end())
         throw std::domain_error("std::domain_error: command must have only alpha characters");
 
     this->command = command;
