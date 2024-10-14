@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/08 19:18:16 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/13 20:53:18 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ int const Server::MAXEVENTS = 16;
 
 Server::Server(void) : epollfd(-1), sockfd(-1), password(), events(NULL) { return; }
 
-Server::Server(int const epollfd, int const sockfd, std::string const &password) : epollfd(epollfd), sockfd(sockfd), password(password), events(new epoll_event[Server::MAXEVENTS]), nfds(0), clients() { return; }
+Server::Server(int const &epollfd, int const &sockfd, std::string const &password) : epollfd(epollfd), sockfd(sockfd), password(password), events(new epoll_event[Server::MAXEVENTS]), nfds(0), clients() { return; }
 
 Server::Server(Server const & /* src */) : epollfd(-1), sockfd(-1), password(), events(NULL) { return; }
 
@@ -25,7 +25,11 @@ Server::~Server(void) throw()
 	delete[] this->events;
 
 	for (std::map<int, Client *const>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+	{
+		close(it->second->getSocket());
+
 		delete it->second;
+	}
 
 	close(this->sockfd);
 	close(this->epollfd);
@@ -111,7 +115,7 @@ void Server::addClient(void)
 		if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
 			throw RuntimeErrno("epoll_ctl");
 
-		this->clients.insert(std::pair<int, Client *const>(hints.data.fd, new Client(hints.data.fd)));
+		this->clients.insert(std::make_pair(hints.data.fd, new Client(hints.data.fd)));
 	}
 	catch (std::exception const &e)
 	{
@@ -120,6 +124,13 @@ void Server::addClient(void)
 
 		throw std::runtime_error("Server::addClient: " + std::string(e.what()));
 	}
+
+	return;
+}
+
+void Server::setClient(int const &connfd, Client *const client)
+{
+	this->clients.insert(std::make_pair(connfd, client));
 
 	return;
 }
@@ -138,6 +149,9 @@ void Server::removeClient(int const &connfd)
 	if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, connfd, this->events) == -1)
 		throw RuntimeErrno("Server::removeClient", "epoll_ctl");
 
+	if (close(connfd) == -1)
+		throw RuntimeErrno("Server::removeClient", "close");
+
 	delete this->clients[connfd];
 
 	this->clients.erase(connfd);
@@ -148,13 +162,3 @@ void Server::removeClient(int const &connfd)
 std::map<int, Client *const>::const_iterator Server::getClientsBegin(void) const throw() { return (this->clients.begin()); }
 
 std::map<int, Client *const>::const_iterator Server::getClientsEnd(void) const throw() { return (this->clients.end()); }
-
-bool Server::isNicknameInUse(std::string nick) const throw()
-{
-    for (std::map<int, Client *const>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-        if (it->second->getNickname() == nick) {
-            return true;
-        }
-    }
-    return false;
-}

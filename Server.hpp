@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/08 19:18:23 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/13 20:23:53 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ public:
 
 		Builder &operator=(Builder const & /* rhs */) throw();
 
-		static std::string const gai_strerror(int errcode);
+		static std::string const gai_strerror(int const &errcode);
 
 		void clear(void) throw();
 	};
@@ -63,11 +63,10 @@ public:
 	std::string const &getPassword(void) const throw();
 	Client *const &getClient(int const &connfd);
 	void addClient(void);
+	void setClient(int const &connfd, Client *const client);
 	void removeClient(int const &connfd);
 	std::map<int, Client *const>::const_iterator getClientsBegin(void) const throw();
 	std::map<int, Client *const>::const_iterator getClientsEnd(void) const throw();
-
-	bool isNicknameInUse(std::string nick) const throw();
 
 private:
 	static int const MAXEVENTS;
@@ -80,7 +79,7 @@ private:
 	std::map<int, Client *const> clients;
 
 	Server(void);
-	Server(int const epollfd, int const sockfd, std::string const &password);
+	Server(int const &epollfd, int const &sockfd, std::string const &password);
 	Server(Server const & /* src */);
 
 	Server &operator=(Server const & /* rhs */) throw();
