@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 17:43:56 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/14 20:42:04 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,12 +39,13 @@ public:
 	virtual void identify(void) throw();
 	std::string const &getNickname(void) const throw();
 	void setNickname(std::string const &nickname) throw();
-	virtual bool isRegistered(void) throw();
-	int getConnfd(void) throw();
+	virtual bool isRegistered(void) throw();	
+	virtual bool isGone(void) throw();
+	virtual void quit(void) throw();
 
 private:
 	int const connfd;
-	bool isMessageTooLong, authorized, identified;
+	bool isMessageTooLong, authorized, identified, gone;
 	std::string input, nickname;
 	std::queue<Message> messages;
 

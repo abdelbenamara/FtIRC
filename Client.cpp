@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 17:44:02 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/14 20:43:30 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Client::Client(void) : connfd(-1) { return; }
 
-Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), identified(false), input(), nickname(), messages()
+Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), identified(false), gone(false), input(), nickname(), messages()
 {
 	this->input.reserve(Message::MAXSIZE);
 	this->nickname.reserve(9);
@@ -118,6 +118,15 @@ void Client::setNickname(std::string const &nickname) throw()
 
 bool Client::isRegistered(void) throw() { return (this->authorized && this->identified && !this->nickname.empty()); }
 
+bool Client::isGone(void) throw() { return (this->gone); }
+
+void Client::quit(void) throw()
+{
+	this->gone = true;
+
+	return;
+}
+
 void Client::addMessage(std::size_t const &crlfpos)
 {
 	if (crlfpos == std::string::npos)
@@ -141,9 +150,4 @@ void Client::addMessage(std::size_t const &crlfpos)
 	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
 
 	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
-}
-
-int Client::getConnfd(void) throw()
-{
-	return this->connfd;
 }
