@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+         #
+#    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/10/09 21:09:57 by ejankovs         ###   ########.fr        #
+#    Updated: 2024/10/14 15:46:42 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,6 @@ CFLAGS += -Wextra
 CFLAGS += -Werror
 CFLAGS += -std=c++98
 CFLAGS += -g3
-
 
 RM := rm -f
 
