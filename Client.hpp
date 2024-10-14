@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 15:44:36 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 17:43:56 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ public:
 	std::string const &getNickname(void) const throw();
 	void setNickname(std::string const &nickname) throw();
 	virtual bool isRegistered(void) throw();
+	int getConnfd(void) throw();
 
 private:
 	int const connfd;

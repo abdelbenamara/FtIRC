@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 15:49:13 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 20:09:26 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ std::map<std::string, void (*)(Client &, Server &)> Command::createApplyMap(void
     map["PASS"] = &Command::pass;
     map["NICK"] = &Command::nick;
     map["USER"] = &Command::user;
-
+	map["QUIT"] = &Command::quit;
+	
     return (map);
 }
 
@@ -125,4 +126,61 @@ void Command::user(Client &client, Server &server)
     }
 
     return;
+}
+
+void Command::quit(Client &client, Server &server)
+{
+	Message const &message = client.message();
+    ssize_t nwrite = 0;
+
+    (void)server;
+
+    try
+    {
+        if (message.getParameters().size() == 1 && client.isRegistered())
+		{
+			// getNickname a changer (on veut :syrk!kalt@millennium.stealth.net par exemple)
+			nwrite = send(client.getSocket(), (client.getNickname() + " QUIT :" + message.getParameters().at(0) + "\r\n").c_str(), client.getNickname().length() + 6 + message.getParameters().at(0).length() + 2, 0);
+		}
+		else
+       		nwrite = send(client.getSocket(), (client.getNickname() + " QUIT\r\n").c_str(), client.getNickname().length() + 7, 0);
+
+        if (nwrite == -1)
+            throw RuntimeErrno("send");
+		// pas sure lol, jsp si on veut le remove avec quit
+		if (client.isRegistered())
+			server.removeClient(client.getConnfd());
+    }
+    catch (std::exception const &e)
+    {
+        throw std::runtime_error("Command::user: " + std::string(e.what()));
+    }
+
+    return;
+}
+
+void Command::privmsg(Client &client, Server &server)
+{
+	Message const &message = client.message();
+    ssize_t nwrite = 0;
+
+    (void)server;
+
+    try
+    {
+		// ou faire une condition ou l'on commence par le message
+        if ((message.getParameters().at(0).empty()))
+            nwrite = send(client.getSocket(), "411 :No recipient given (PRIVMSG)\r\n", 35, 0);
+        
+
+        if (nwrite == -1)
+            throw RuntimeErrno("send");
+    }
+    catch (std::exception const &e)
+    {
+        throw std::runtime_error("Command::user: " + std::string(e.what()));
+    }
+
+    return;
+
 }

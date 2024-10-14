@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 15:46:12 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 19:42:36 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ private:
     static void pass(Client &client, Server &server);
     static void nick(Client &client, Server &server);
     static void user(Client &client, Server &server);
-    // static void quit(Client &client, Server &server);
-    // static void privmsg(Client &client, Server &server);
+    static void quit(Client &client, Server &server);
+    static void privmsg(Client &client, Server &server);
     // static void join(Client &client, Server &server);
     // static void mode(Client &client, Server &server);
     // static void topic(Client &client, Server &server);

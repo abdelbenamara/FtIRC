@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MessageBuilder.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/13 12:00:23 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 20:09:48 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ Message::Builder &Message::Builder::withInput(std::string const &input)
 
         if (input.find_first_of(Message::CRLF) < input.length() - Message::CRLF.length())
             throw std::invalid_argument("std::invalid_argument: CR and LF characters are not allowed within parameter, only the trailing CR-LF is allowed");
-
         this->input = input;
     }
     catch (std::exception const &e)
