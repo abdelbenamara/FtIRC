@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 20:09:26 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/14 21:30:58 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@ std::map<std::string, void (*)(Client &, Server &)> Command::createApplyMap(void
     map["PASS"] = &Command::pass;
     map["NICK"] = &Command::nick;
     map["USER"] = &Command::user;
-	map["QUIT"] = &Command::quit;
-	
+    map["QUIT"] = &Command::quit;
+
     return (map);
 }
 
@@ -58,7 +58,7 @@ void Command::nick(Client &client, Server &server)
     Message const &message = client.message();
     std::string const &nickname = message.getParameters().at(0);
     ssize_t nwrite = 0;
-    std::map<int, Client *const>::const_iterator it = server.getClientsBegin();
+    std::map<int, Client *const>::iterator it = server.getClients().begin();
 
     try
     {
@@ -67,7 +67,7 @@ void Command::nick(Client &client, Server &server)
         else if (std::find_if(nickname.begin(), nickname.end(), Message::isNotInNicknameFormat) != nickname.end())
             nwrite = send(client.getSocket(), ("432 " + nickname + " :Erroneous nickname\r\n").c_str(), nickname.length() + 26, 0);
         else
-            for (; it != server.getClientsEnd(); ++it)
+            for (; it != server.getClients().end(); ++it)
             {
                 if (it->second->getNickname() == nickname)
                 {
@@ -77,13 +77,15 @@ void Command::nick(Client &client, Server &server)
                 }
             }
 
-        if (it == server.getClientsEnd())
+        if (it == server.getClients().end())
+        {
             client.setNickname(nickname);
 
-        if (client.isRegistered())
-            nwrite = send(client.getSocket(), ("001 " + client.getNickname() + " :Welcome to the ft_irc Network, " + client.getNickname() + "\r\n").c_str(), client.getNickname().length() * 2 + 39, 0);
-        else if (!client.isAuthorized() && client.isIdentified())
-            nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
+            if (client.isRegistered())
+                nwrite = send(client.getSocket(), ("001 " + client.getNickname() + " :Welcome to the ft_irc Network, " + client.getNickname() + "\r\n").c_str(), client.getNickname().length() * 2 + 39, 0);
+            else if (!client.isAuthorized() && client.isIdentified())
+                nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
+        }
 
         if (nwrite == -1)
             throw RuntimeErrno("send");
@@ -110,12 +112,14 @@ void Command::user(Client &client, Server &server)
         else if (client.isRegistered())
             nwrite = send(client.getSocket(), "462 :Unauthorized command (already registered)\r\n", 48, 0);
         else
+        {
             client.identify();
 
-        if (client.isRegistered())
-            nwrite = send(client.getSocket(), ("001 " + client.getNickname() + " :Welcome to the ft_irc Network, " + client.getNickname() + "\r\n").c_str(), client.getNickname().length() * 2 + 39, 0);
-        else if (!client.isAuthorized() && !client.getNickname().empty())
-            nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
+            if (client.isRegistered())
+                nwrite = send(client.getSocket(), ("001 " + client.getNickname() + " :Welcome to the ft_irc Network, " + client.getNickname() + "\r\n").c_str(), client.getNickname().length() * 2 + 39, 0);
+            else if (!client.isAuthorized() && !client.getNickname().empty())
+                nwrite = send(client.getSocket(), "464 :Password incorrect\r\n", 25, 0);
+        }
 
         if (nwrite == -1)
             throw RuntimeErrno("send");
@@ -130,57 +134,33 @@ void Command::user(Client &client, Server &server)
 
 void Command::quit(Client &client, Server &server)
 {
-	Message const &message = client.message();
-    ssize_t nwrite = 0;
-
     (void)server;
 
-    try
-    {
-        if (message.getParameters().size() == 1 && client.isRegistered())
-		{
-			// getNickname a changer (on veut :syrk!kalt@millennium.stealth.net par exemple)
-			nwrite = send(client.getSocket(), (client.getNickname() + " QUIT :" + message.getParameters().at(0) + "\r\n").c_str(), client.getNickname().length() + 6 + message.getParameters().at(0).length() + 2, 0);
-		}
-		else
-       		nwrite = send(client.getSocket(), (client.getNickname() + " QUIT\r\n").c_str(), client.getNickname().length() + 7, 0);
-
-        if (nwrite == -1)
-            throw RuntimeErrno("send");
-		// pas sure lol, jsp si on veut le remove avec quit
-		if (client.isRegistered())
-			server.removeClient(client.getConnfd());
-    }
-    catch (std::exception const &e)
-    {
-        throw std::runtime_error("Command::user: " + std::string(e.what()));
-    }
+    client.quit();
 
     return;
 }
 
 void Command::privmsg(Client &client, Server &server)
 {
-	Message const &message = client.message();
+    Message const &message = client.message();
     ssize_t nwrite = 0;
 
     (void)server;
 
     try
     {
-		// ou faire une condition ou l'on commence par le message
+        // ou faire une condition ou l'on commence par le message
         if ((message.getParameters().at(0).empty()))
             nwrite = send(client.getSocket(), "411 :No recipient given (PRIVMSG)\r\n", 35, 0);
-        
 
         if (nwrite == -1)
             throw RuntimeErrno("send");
     }
     catch (std::exception const &e)
     {
-        throw std::runtime_error("Command::user: " + std::string(e.what()));
+        throw std::runtime_error("Command::privmsg: " + std::string(e.what()));
     }
 
     return;
-
 }
