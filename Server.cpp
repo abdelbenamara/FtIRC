@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/13 20:53:18 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 21:37:16 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,7 @@ Server::~Server(void) throw()
 	delete[] this->events;
 
 	for (std::map<int, Client *const>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
-	{
-		close(it->second->getSocket());
-
 		delete it->second;
-	}
 
 	close(this->sockfd);
 	close(this->epollfd);
@@ -95,6 +91,8 @@ Client *const &Server::getClient(int const &connfd)
 	return (this->clients[connfd]);
 }
 
+std::map<int, Client *const> &Server::getClients(void) throw() { return (this->clients); }
+
 void Server::addClient(void)
 {
 	epoll_event hints;
@@ -135,30 +133,31 @@ void Server::setClient(int const &connfd, Client *const client)
 	return;
 }
 
+void Server::removeClient(std::map<int, Client *const>::iterator it)
+{
+	Client *const client = it->second;
+
+	if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, client->getSocket(), this->events) == -1)
+		throw RuntimeErrno("Server::removeClient", "epoll_ctl");
+
+	this->clients.erase(it);
+
+	delete client;
+
+	return;
+}
+
 void Server::removeClient(int const &connfd)
 {
 	std::ostringstream err;
+	std::map<int, Client *const>::iterator it = this->clients.find(connfd);
 
-	if (this->clients.find(connfd) == this->clients.end())
+	if (it == this->clients.end())
 	{
 		err << "Server::removeClient: std::invalid_argument: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
 
 		throw std::invalid_argument(err.str());
 	}
 
-	if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, connfd, this->events) == -1)
-		throw RuntimeErrno("Server::removeClient", "epoll_ctl");
-
-	if (close(connfd) == -1)
-		throw RuntimeErrno("Server::removeClient", "close");
-
-	delete this->clients[connfd];
-
-	this->clients.erase(connfd);
-
-	return;
+	return this->removeClient(it);
 }
-
-std::map<int, Client *const>::const_iterator Server::getClientsBegin(void) const throw() { return (this->clients.begin()); }
-
-std::map<int, Client *const>::const_iterator Server::getClientsEnd(void) const throw() { return (this->clients.end()); }

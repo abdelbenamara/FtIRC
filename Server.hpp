@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/13 20:23:53 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 21:33:10 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,11 +62,11 @@ public:
 	int getSocket(void) const throw();
 	std::string const &getPassword(void) const throw();
 	Client *const &getClient(int const &connfd);
+	std::map<int, Client *const> &getClients(void) throw();
 	void addClient(void);
 	void setClient(int const &connfd, Client *const client);
+	void removeClient(std::map<int, Client *const>::iterator cit);
 	void removeClient(int const &connfd);
-	std::map<int, Client *const>::const_iterator getClientsBegin(void) const throw();
-	std::map<int, Client *const>::const_iterator getClientsEnd(void) const throw();
 
 private:
 	static int const MAXEVENTS;
