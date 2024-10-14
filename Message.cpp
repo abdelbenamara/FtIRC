@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 19:40:45 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/13 20:23:05 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,17 @@ std::string const Message::CRLF = "\r\n";
 std::size_t const Message::MAXSIZE = 512, Message::MAXCHARS = Message::MAXSIZE - Message::CRLF.length();
 
 char Message::BUFFER[Message::MAXSIZE];
+
+bool Message::isNotInServernameFormat(char const &c) { return (c != '.' && c != '-' && !std::isalnum(c, Message::LOCALE)); }
+
+bool Message::isNotInNicknameFormat(char const &c)
+{
+    static std::string const special = "[]\\`_^{|}";
+
+    return (c != '-' && special.find(c) == std::string::npos && !std::isalnum(c, Message::LOCALE));
+}
+
+bool Message::isNotInCommandFormat(char const &c) { return (!std::isalpha(c, Message::LOCALE)); }
 
 Message::Message(void) : input(), prefix(), command(), parameters() { return; }
 

@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/09/21 19:39:48 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/13 20:22:52 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,6 @@ public:
 
         Builder &operator=(Builder const & /* rhs */) throw();
 
-        static bool isNotInServernameFormat(char const c);
-        static bool isNotInNicknameFormat(char const c);
-        static bool isNotInCommandFormat(char const c);
-
         void setPrefix(std::string const &prefix);
         void setCommand(std::string const &command);
     };
@@ -52,6 +48,9 @@ public:
     static std::string const CRLF;
     static std::size_t const MAXSIZE, MAXCHARS;
     static char BUFFER[];
+    static bool isNotInServernameFormat(char const &c);
+    static bool isNotInNicknameFormat(char const &c);
+    static bool isNotInCommandFormat(char const &c);
 
     Message(Message const &src);
     virtual ~Message(void);
