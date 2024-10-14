@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/09 19:55:05 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/14 15:14:21 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,21 @@
 #include "Server.hpp"
 
 static void noop(int /* signum */) throw() { return; }
+
+static void debug(Message const *const message)
+{
+	std::cout << "Debug: Client: [prefix=" << message->getPrefix() << ", command=" << message->getCommand() << ", parameters=";
+
+	for (std::vector<std::string>::const_iterator p = message->getParameters().begin(); p != message->getParameters().end(); ++p)
+	{
+		std::cout << *p;
+
+		if (p + 1 != message->getParameters().end())
+			std::cout << ',';
+	}
+
+	std::cout << "] " << message->getInput();
+}
 
 static void run(Server *const server) throw(std::runtime_error)
 {
@@ -54,24 +69,14 @@ static void run(Server *const server) throw(std::runtime_error)
 				{
 					message = &it->second->message();
 
-					std::cout << "Info: Client: [prefix=" << message->getPrefix() << ", command=" << message->getCommand() << ", parameters=";
-
-					for (std::vector<std::string>::const_iterator p = message->getParameters().begin(); p != message->getParameters().end(); ++p)
-					{
-						std::cout << *p;
-
-						if (p + 1 != message->getParameters().end())
-							std::cout << ',';
-					}
-
-					std::cout << "] " << message->getInput();
+					::debug(message);
 
 					if (Command::APPLY.find(message->getCommand()) == Command::APPLY.end())
 					{
 						n = send(it->second->getSocket(), ("421 " + message->getCommand() + " :Unknown command\r\n").c_str(), message->getCommand().length() + 23, 0);
 
 						if (n == -1)
-							throw RuntimeErrno("::run", "send");
+							throw RuntimeErrno("send");
 					}
 					else
 						Command::APPLY.at(message->getCommand())(*(it->second), *server);
