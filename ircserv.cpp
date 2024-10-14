@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 15:14:21 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/14 21:38:13 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,26 +26,26 @@
 
 static void noop(int /* signum */) throw() { return; }
 
-static void debug(Message const *const message)
+static void debug(Message const &message)
 {
-	std::cout << "Debug: Client: [prefix=" << message->getPrefix() << ", command=" << message->getCommand() << ", parameters=";
+	std::cout << "Debug: Client: [prefix=" << message.getPrefix() << ", command=" << message.getCommand() << ", parameters=";
 
-	for (std::vector<std::string>::const_iterator p = message->getParameters().begin(); p != message->getParameters().end(); ++p)
+	for (std::vector<std::string>::const_iterator p = message.getParameters().begin(); p != message.getParameters().end(); ++p)
 	{
 		std::cout << *p;
 
-		if (p + 1 != message->getParameters().end())
+		if (p + 1 != message.getParameters().end())
 			std::cout << ',';
 	}
 
-	std::cout << "] " << message->getInput();
+	std::cout << "] " << message.getInput();
 }
 
 static void run(Server *const server) throw(std::runtime_error)
 {
-	std::map<int, Client *const>::const_iterator it;
-	Message const *message;
-	int nfds, n;
+	std::map<int, Client *const>::iterator it;
+	Client *client;
+	int nfds, connfd;
 
 	while (true)
 	{
@@ -55,34 +55,40 @@ static void run(Server *const server) throw(std::runtime_error)
 		{
 			for (int i = 0; i < nfds; ++i)
 			{
-				n = server->getEventSocket(i);
+				connfd = server->getEventSocket(i);
 
-				if (n == server->getSocket())
+				if (connfd == server->getSocket())
 					server->addClient();
-				else if (!server->getClient(n)->updateInput())
-					server->removeClient(n);
+				else if (!server->getClient(connfd)->updateInput())
+					server->removeClient(connfd);
 			}
 
-			for (it = server->getClientsBegin(); it != server->getClientsEnd(); ++it)
+			for (it = server->getClients().begin(); it != server->getClients().end();)
 			{
-				while (it->second->hasMessage())
+				client = it->second;
+
+				while (client->hasMessage())
 				{
-					message = &it->second->message();
+					::debug(client->message());
 
-					::debug(message);
-
-					if (Command::APPLY.find(message->getCommand()) == Command::APPLY.end())
+					if (Command::APPLY.find(client->message().getCommand()) == Command::APPLY.end())
 					{
-						n = send(it->second->getSocket(), ("421 " + message->getCommand() + " :Unknown command\r\n").c_str(), message->getCommand().length() + 23, 0);
-
-						if (n == -1)
+						if (send(client->getSocket(), ("421 " + client->message().getCommand() + " :Unknown command\r\n").c_str(), client->message().getCommand().length() + 23, 0) == -1)
 							throw RuntimeErrno("send");
 					}
 					else
-						Command::APPLY.at(message->getCommand())(*(it->second), *server);
+						Command::APPLY.at(client->message().getCommand())(*client, *server);
 
-					it->second->removeMessage();
+					client->removeMessage();
+
+					if (client->isGone())
+						break;
 				}
+
+				if (client->isGone())
+					server->removeClient(it++);
+				else
+					++it;
 			}
 		}
 		catch (std::exception const &e)
