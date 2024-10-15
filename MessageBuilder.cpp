@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MessageBuilder.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:49:24 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 20:09:48 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/15 10:39:51 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,13 +60,14 @@ Message Message::Builder::build(void)
     {
         if (pos != 1 && this->input.at(0) == ':')
         {
+            if (pos == max)
+                throw std::invalid_argument("std::invalid_argument: message format must be `[ \":\" prefix SPACE ] command [ params ] crlf'");
+
             this->setPrefix(this->input.substr(1, pos - 1));
+
             cur = pos + 1;
             pos = this->input.find_first_of(sep, cur);
         }
-
-        if (pos == max)
-            throw std::invalid_argument("std::invalid_argument: input format must be `[ \":\" prefix SPACE ] command [ params ] crlf'");
 
         this->setCommand(this->input.substr(cur, pos - cur));
 
@@ -138,7 +139,7 @@ void Message::Builder::setPrefix(std::string const &prefix)
 
 void Message::Builder::setCommand(std::string const &command)
 {
-    if (std::isdigit(command.at(0), Message::LOCALE))
+    if (!command.empty() && std::isdigit(command.at(0), Message::LOCALE))
     {
         if (command.length() != 3)
             throw std::length_error("std::length_error: command response must have a length of exactly 3 characters");
