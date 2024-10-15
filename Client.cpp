@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 20:43:30 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/15 10:21:42 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,15 @@ void Client::quit(void) throw()
 	return;
 }
 
+void Client::cleanupInput(std::size_t const &crlfpos)
+{
+	this->isMessageTooLong = false;
+
+	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
+
+	return;
+}
+
 void Client::addMessage(std::size_t const &crlfpos)
 {
 	if (crlfpos == std::string::npos)
@@ -140,14 +149,21 @@ void Client::addMessage(std::size_t const &crlfpos)
 		return;
 	}
 
-	if (!this->isMessageTooLong && 0 < crlfpos && crlfpos <= Message::MAXCHARS)
-		this->messages.push(Message::Builder()
-								.withInput(this->input.substr(0, crlfpos) + Message::CRLF)
-								.build());
+	try
+	{
+		if (!this->isMessageTooLong && 0 < crlfpos && crlfpos <= Message::MAXCHARS)
+			this->messages.push(Message::Builder()
+									.withInput(this->input.substr(0, crlfpos) + Message::CRLF)
+									.build());
 
-	this->isMessageTooLong = false;
+		this->cleanupInput(crlfpos);
+	}
+	catch (const std::exception &e)
+	{
+		this->cleanupInput(crlfpos);
 
-	this->input.erase(0, this->input.find_first_not_of(Message::CRLF, crlfpos));
+		throw;
+	}
 
 	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
 }

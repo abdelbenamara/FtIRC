@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 20:42:04 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/15 10:21:30 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ public:
 	virtual void identify(void) throw();
 	std::string const &getNickname(void) const throw();
 	void setNickname(std::string const &nickname) throw();
-	virtual bool isRegistered(void) throw();	
+	virtual bool isRegistered(void) throw();
 	virtual bool isGone(void) throw();
 	virtual void quit(void) throw();
 
@@ -54,6 +54,7 @@ private:
 
 	Client &operator=(Client const & /* rhs */) throw();
 
+	void cleanupInput(std::size_t const &crlfpos);
 	void addMessage(std::size_t const &crlfpos);
 };
 
