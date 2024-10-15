@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 21:37:16 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/15 22:14:50 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,4 +160,14 @@ void Server::removeClient(int const &connfd)
 	}
 
 	return this->removeClient(it);
+}
+
+int Server::getConnfd(std::string clientName) throw()
+{
+    for (std::map<int, Client *const>::const_iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
+        if (it->second->getNickname() == clientName) {
+            return it->first;
+        }
+    }
+	return -1;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 21:33:10 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/15 22:20:03 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include "Client.hpp"
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
+#include "Channel.hpp"
 
 class Server
 {
@@ -67,6 +68,7 @@ public:
 	void setClient(int const &connfd, Client *const client);
 	void removeClient(std::map<int, Client *const>::iterator cit);
 	void removeClient(int const &connfd);
+	int getConnfd(std::string clientName) throw();
 
 private:
 	static int const MAXEVENTS;
@@ -77,6 +79,7 @@ private:
 
 	int nfds;
 	std::map<int, Client *const> clients;
+	std::map<std::string, Channel *const> channels;
 
 	Server(void);
 	Server(int const &epollfd, int const &sockfd, std::string const &password);
