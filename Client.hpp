@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/15 10:21:30 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/16 17:24:21 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ public:
 	bool isAuthorized(void) const throw();
 	void setAuthorized(bool const &isAuthorized) throw();
 	virtual bool isIdentified(void) throw();
-	virtual void identify(void) throw();
+	virtual void identify(std::string const &username);
 	std::string const &getNickname(void) const throw();
 	void setNickname(std::string const &nickname) throw();
 	virtual bool isRegistered(void) throw();
@@ -46,7 +46,7 @@ public:
 private:
 	int const connfd;
 	bool isMessageTooLong, authorized, identified, gone;
-	std::string input, nickname;
+	std::string input, nickname, username, host;
 	std::queue<Message> messages;
 
 	Client(void);

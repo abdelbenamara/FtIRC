@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/15 10:21:42 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/16 18:06:47 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 
 Client::Client(void) : connfd(-1) { return; }
 
-Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), identified(false), gone(false), input(), nickname(), messages()
+Client::Client(int const connfd) : connfd(connfd), isMessageTooLong(false), authorized(false), identified(false), gone(false), input(), nickname(), username(), host(), messages()
 {
+	// TODO: set host depending of Address Family ...
 	this->input.reserve(Message::MAXSIZE);
 	this->nickname.reserve(9);
 
@@ -100,8 +101,12 @@ void Client::setAuthorized(bool const &isAuthorized) throw()
 
 bool Client::isIdentified(void) throw() { return (false); }
 
-void Client::identify(void) throw()
+void Client::identify(std::string const &username)
 {
+	if (this->identified)
+		throw std::runtime_error("Client::identify: std::runtime_error: client already identified, `Client::identify' must only be called once per client");
+
+	this->username = username;
 	this->identified = true;
 
 	return;
