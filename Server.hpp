@@ -6,7 +6,7 @@
 /*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/15 22:20:03 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/16 20:02:48 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <pair>
 #include "Client.hpp"
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
@@ -69,6 +70,8 @@ public:
 	void removeClient(std::map<int, Client *const>::iterator cit);
 	void removeClient(int const &connfd);
 	int getConnfd(std::string clientName) throw();
+	Channel *findOrCreateChannel(std::string channelName) throw();
+	
 
 private:
 	static int const MAXEVENTS;

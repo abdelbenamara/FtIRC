@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 17:24:21 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/16 20:35:15 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,12 @@
 #include <queue>
 #include <stdexcept>
 #include <string>
+#include <map>
+//#include "Channel.hpp"
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
+
+class Channel;
 
 class Client
 {
@@ -42,12 +46,14 @@ public:
 	virtual bool isRegistered(void) throw();
 	virtual bool isGone(void) throw();
 	virtual void quit(void) throw();
+	std::map<int, Channel *const> &getChannels(void) throw();
 
 private:
 	int const connfd;
 	bool isMessageTooLong, authorized, identified, gone;
 	std::string input, nickname, username, host;
 	std::queue<Message> messages;
+	std::map<std::string, Channel *const> channels;
 
 	Client(void);
 	Client(Client const &src);

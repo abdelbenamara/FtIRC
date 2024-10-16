@@ -17,7 +17,7 @@ Channel::~Channel() throw()
     	delete clients[i];
 }
 
-Channel& Channel::operator=(Channel const &rhs) throw() {}
+Channel& Channel::operator=(Channel const &rhs) throw() { return (*this); }
 
 void Channel::addOperator(Client client) throw()
 {
@@ -38,3 +38,33 @@ void Channel::removeMember(Client client) throw()
 {
 	clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
 }
+
+bool Channel::isInviteOnly(void) throw()
+{
+	return this->inviteOnly;
+}
+
+bool Channel::isUserInvited(Client client) throw()
+{
+	// faire une liste des utilisateurs invites ?
+}
+
+bool Channel::hasKey() throw()
+{
+	if (this->key.empty())
+		return false;
+	return true;
+}
+
+bool Channel::isFull() throw()
+{
+	// voir comment on va gerer et si clients contient tout le monde
+	// ici je suppose que non
+	if (this->operators.size() + this->clients.size() >= MAX_CLIENTS)
+		return true;
+	return false;
+}
+
+std::string Channel::getKey() throw() { return (this->key); }
+
+std::string Channel::getTopic() throw() { return (this->topic); }

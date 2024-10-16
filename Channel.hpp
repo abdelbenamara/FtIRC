@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+# define MAX_CLIENTS 15
 
 #include "Client.hpp"
 
@@ -22,6 +23,14 @@ public :
 	void removeMember(Client client) throw();
 
 	void notifyClient(void) throw();
+
+	bool isInviteOnly(void) throw();
+	bool isUserInvited(Client client) throw();
+	bool hasKey() throw();
+	bool isFull() throw();
+
+	std::string getKey() throw();
+	std::string getTopic() throw();
 
 private :
 	std::string name;

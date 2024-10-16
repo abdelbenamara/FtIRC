@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 18:06:47 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/16 19:49:47 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,4 +171,9 @@ void Client::addMessage(std::size_t const &crlfpos)
 	}
 
 	return (this->addMessage(this->input.find_first_of(Message::CRLF)));
+}
+
+std::map<int, Channel *const> &Client::getChannels(void) throw()
+{
+	return (this->channels);
 }

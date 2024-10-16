@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
+#    By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/10/14 15:46:42 by abenamar         ###   ########.fr        #
+#    Updated: 2024/10/16 20:33:59 by ejankovs         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ SRCS += Client.cpp
 SRCS += Server.cpp
 SRCS += ServerBuilder.cpp
 SRCS += Command.cpp
+SRCS += Channel.cpp
 SRCS += ircserv.cpp
 
 OBJS := $(SRCS:.cpp=.o)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 17:45:33 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/16 20:32:25 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ std::map<std::string, void (*)(Client &, Server &)> Command::createApplyMap(void
     map["USER"] = &Command::user;
     map["QUIT"] = &Command::quit;
     map["PRIVMSG"] = &Command::privmsg;
+	map["NOTICE"] = &Command::notice;
     map["JOIN"] = &Command::join;
 
     return (map);
@@ -193,9 +194,102 @@ void Command::privmsg(Client &client, Server &server)
     return;
 }
 
+void Command::notice(Client &client, Server &server)
+{
+    Message const &message = client.message();
+    ssize_t nwrite = 0;
+
+    (void)server;
+
+    try
+    {
+        if (message.getParameters().empty() || message.getParameters().at(1).empty())
+            return;
+
+        std::string mask = message.getParameters().at(0);
+
+        if (mask[0] == '#') {
+            std::size_t idx = mask.find_last_of(".");
+            if (idx != std::string::npos && mask.substr(idx, mask.length()).find("*") == std::string::npos) {
+				// TO DO
+            }
+        }
+		else
+		{
+            int target_fd = server.getConnfd(mask);
+            if (target_fd >= 0)
+                nwrite = send(target_fd, (":" + client.getNickname() + " NOTICE " + mask + " :" + message.getParameters().at(1) + "\r\n").c_str(), client.getNickname().length() + mask.length() + message.getParameters().at(1).length() + 12, 0);
+        }
+
+        if (nwrite == -1)
+            throw RuntimeErrno("send");
+    }
+    catch (std::exception const &e)
+    {
+        throw std::runtime_error("Command::notice: " + std::string(e.what()));
+    }
+
+    return;
+}
+
 void Command::join(Client &client, Server &server)
 {
-    (void)client;
-    (void)server;
-    return;
+    Message const &message = client.message();
+    std::string nick = client.getNickname();
+    ssize_t nwrite = 0;
+
+    try {
+        if (message.getParameters().empty())
+		{
+            nwrite = send(client.getSocket(), ("461 " + nick + " JOIN :Not enough parameters\r\n").c_str(), 39 + nick.length(), 0);
+			return ;
+		}
+
+		// faire une boucle pour tous les channels avec , en separateur
+        std::string channelName = message.getParameters().at(0);
+        std::string key = message.getParameters().size() > 1 ? message.getParameters().at(1) : "";
+
+        if (client.getChannels().size() >= 20000)
+            nwrite = send(client.getSocket(), ("405 " + nick + " " + channelName + " :You have joined too many channels\r\n").c_str(), 55 + nick.length() + channelName.length(), 0);
+        else if (!isValidChannelName(channelName)) {
+            nwrite = send(client.getSocket(), ("476 " + nick + " " + channelName + " :Bad Channel Mask\r\n").c_str(), 40 + nick.length() + channelName.length(), 0);
+            return;
+        }
+
+        Channel *channel = server.findOrCreateChannel(channelName);
+
+        if (channel->isInviteOnly() && !channel->isUserInvited(&client)) {
+            nwrite = send(client.getSocket(), ("473 " + nick + " " + channelName + " :Cannot join channel (+i)\r\n").c_str(), 50 + nick.length() + channelName.length(), 0);
+            return;
+        }
+
+        if (channel->hasKey() && channel->getKey() != key) {
+            nwrite = send(client.getSocket(), ("475 " + nick + " " + channelName + " :Cannot join channel (+k)\r\n").c_str(), 50 + nick.length() + channelName.length(), 0);
+            return;
+        }
+
+        if (channel->isFull())
+		{
+            nwrite = send(client.getSocket(), ("471 " + nick + " " + channelName + " :Cannot join channel (+l)\r\n").c_str(), 50 + nick.length() + channelName.length(), 0);
+            return;
+		}
+		
+        channel->addUser(&client);
+        client.addChannel(channel);
+
+        channel->broadcast(":" + nick + " JOIN " + channelName + "\r\n");
+
+        if (!channel->getTopic().empty())
+            nwrite = send(client.getSocket(), ("332 " + nick + " " + channelName + " :" + channel->getTopic() + "\r\n").c_str(), 35 + nick.length() + channelName.length() + channel->getTopic().length(), 0);
+
+        if (nwrite == -1)
+            throw RuntimeErrno("send");
+
+    }
+	catch (std::exception const &e)
+	{
+        throw std::runtime_error("Command::join: " + std::string(e.what()));
+    }
+
+	return ;
 }

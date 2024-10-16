@@ -6,7 +6,7 @@
 /*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/15 22:14:50 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/16 20:03:55 by ejankovs         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,4 +170,15 @@ int Server::getConnfd(std::string clientName) throw()
         }
     }
 	return -1;
+}
+
+Channel *Server::findOrCreateChannel(std::string channelName) throw()
+{
+	Channel *channel = this->channels.find(channelName);
+	
+	if (channel == this->channels.end())
+	{
+		this->channels.insert(std::pair<std::string, Channel *>(channelName, Channel()));
+	}
+	return channel->second;
 }
