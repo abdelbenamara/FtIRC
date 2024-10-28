@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:31:47 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/28 21:06:36 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ public:
 
     static Message parse(std::string const &input);
 
-    Message(void);
     Message(Message const &src);
 
     virtual ~Message(void);
@@ -74,6 +73,7 @@ private:
 
     Message(std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
 
+    Message(void);                       /* = delete (C++11) */
     Message &operator=(Message const &); /* = delete (C++11) */
 };
 

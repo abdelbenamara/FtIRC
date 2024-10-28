@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:32:06 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/28 21:06:54 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,11 +198,6 @@ Message Message::parse(std::string const &input)
 
     return (builder.build());
 }
-
-Message::Message(void)
-    : prefix(),
-      command(),
-      parameters() { return; }
 
 Message::Message(Message const &src)
     : prefix(src.prefix),
