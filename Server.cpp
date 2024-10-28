@@ -3,121 +3,310 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 20:03:55 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/28 20:36:18 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-int const Server::MAXEVENTS = 16;
+int const Server::MAX_EVENTS = 16;
 
-Server::Server(void) : epollfd(-1), sockfd(-1), password(), events(NULL) { return; }
+epoll_event Server::EVENTS[Server::MAX_EVENTS];
+char Server::BUFFER[MSG_SIZE];
+int Server::sockfd = -1;
 
-Server::Server(int const &epollfd, int const &sockfd, std::string const &password) : epollfd(epollfd), sockfd(sockfd), password(password), events(new epoll_event[Server::MAXEVENTS]), nfds(0), clients() { return; }
+Server &Server::getInstance(std::string const &numericserv, std::string const &password)
+{
+	static Server instance(numericserv, password);
 
-Server::Server(Server const & /* src */) : epollfd(-1), sockfd(-1), password(), events(NULL) { return; }
+	return (instance);
+}
+
+void Server::produce(Client const &client, Message const &message)
+{
+	std::string buf;
+
+	try
+	{
+		buf = message.str();
+
+		if (send(client.getSocket(), buf.c_str(), buf.length(), 0) == -1)
+			throw RuntimeErrno("send");
+
+#ifndef NDEBUG
+		std::cout << "Debug: Server --> #" << client.getSocket() << ": " << message << std::endl;
+#endif
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::produce: " + std::string(e.what()));
+	}
+
+	return;
+}
+
+int Server::initServerPort(std::string const &numericserv)
+{
+	std::istringstream check(numericserv);
+	in_port_t port;
+	addrinfo hints, *info;
+	int eai;
+	sockaddr_storage addr;
+
+	try
+	{
+		check >> port;
+
+		if (!check.eof())
+			throw std::invalid_argument("std::invalid_argument: " + numericserv + ": numericserv must be a port number between 1 and 65535, or 0 to request a system-allocated (dynamic) port");
+
+		hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV | AI_V4MAPPED | AI_ADDRCONFIG;
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+		hints.ai_addrlen = sizeof(sockaddr_storage);
+		hints.ai_addr = NULL;
+		hints.ai_canonname = NULL;
+		hints.ai_next = NULL;
+		eai = getaddrinfo(NULL, numericserv.c_str(), &hints, &hints.ai_next);
+
+		if (eai)
+			throw std::runtime_error("std::runtime_error: getaddrinfo: " + std::string(gai_strerror(eai)) + (eai == EAI_SYSTEM ? ": " + std::string(strerror(errno)) : ""));
+
+		for (info = hints.ai_next; info != NULL; info = info->ai_next)
+		{
+			Server::sockfd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+			if (Server::sockfd == -1)
+				continue;
+			else if (!bind(Server::sockfd, info->ai_addr, info->ai_addrlen))
+				break;
+
+			close(Server::sockfd);
+		}
+
+		freeaddrinfo(hints.ai_next);
+
+		if (info == NULL)
+			throw RuntimeErrno("socket / bind");
+		else if (getsockname(Server::sockfd, reinterpret_cast<sockaddr *>(&addr), &hints.ai_addrlen) == -1)
+			throw RuntimeErrno("getsockname");
+		else if (addr.ss_family == AF_INET)
+			port = reinterpret_cast<sockaddr_in *>(&addr)->sin_port;
+		else
+			port = reinterpret_cast<sockaddr_in6 *>(&addr)->sin6_port;
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::initServerPort: " + std::string(e.what()));
+	}
+
+	return (ntohs(port));
+}
+
+Server::Server(std::string const &numericserv, std::string const &password)
+try : epollfd(epoll_create1(0)),
+	port(Server::initServerPort(numericserv)),
+	password(password),
+	clients(),
+	buffers(),
+	overflows()
+{
+	epoll_event hints;
+
+	if (this->epollfd == -1)
+		throw RuntimeErrno("epoll_create1");
+	else if (fcntl(Server::sockfd, F_SETFL, O_NONBLOCK) == -1)
+		throw RuntimeErrno("fcntl");
+	else if (listen(Server::sockfd, SOMAXCONN) == -1)
+		throw RuntimeErrno("listen");
+
+	hints.events = EPOLLIN;
+	hints.data.fd = Server::sockfd;
+
+	if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
+		throw RuntimeErrno("epoll_ctl");
+
+	return;
+}
+catch (std::exception const &e)
+{
+	close(Server::sockfd);
+	close(this->epollfd);
+
+	throw std::runtime_error("Server::Server: " + std::string(e.what()));
+}
 
 Server::~Server(void) throw()
 {
-	delete[] this->events;
+	for (std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+	{
+		try
+		{
+			Server::produce(it->second, Message::Builder()
+											.withCommand(CMD_ERROR)
+											.addParameter("Closing link: (" + it->second.userId() + ") [Server shutting down]")
+											.build());
+		}
+		catch (std::exception const &e)
+		{
+			std::cerr << "Error: Server::~Server: " << e.what() << std::endl;
+		}
 
-	for (std::map<int, Client *const>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
-		delete it->second;
+		close(it->first);
+	}
 
-	close(this->sockfd);
+	close(Server::sockfd);
 	close(this->epollfd);
 
 	return;
 }
 
-Server &Server::operator=(Server const & /* rhs */) throw() { return (*this); }
+in_port_t const &Server::getPort(void) const throw() { return (this->port); }
 
-in_port_t Server::port(void) const
+std::map<int, Client> const &Server::getClients(void) const throw() { return (this->clients); }
+
+void Server::completeRegistration(Client const &client)
 {
-	sockaddr_storage addr;
-	socklen_t addrlen = sizeof(addr);
-
-	if (getsockname(this->sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen) == -1)
-		throw RuntimeErrno("Server::port", "getsockname");
-
-	if (addr.ss_family == AF_INET)
-		return (ntohs(reinterpret_cast<sockaddr_in *>(&addr)->sin_port));
-
-	return (ntohs(reinterpret_cast<sockaddr_in6 *>(&addr)->sin6_port));
-}
-
-int Server::waitForEvents(void)
-{
-	this->nfds = epoll_wait(this->epollfd, this->events, Server::MAXEVENTS, -1);
-
-	if (this->nfds == -1)
-		throw RuntimeErrno("Server::waitForEvents", "epoll_wait");
-
-	return (this->nfds);
-}
-
-int Server::getEventSocket(int const &pos) const
-{
-	std::ostringstream err;
-
-	if (pos < 0 || this->nfds <= pos)
-	{
-		err << "Server::getEventSocket:: std::out_of_range: `" << pos << "': parameter must be between 0 and the value returned by `Server::waitForEvents' excluded";
-
-		throw std::out_of_range(err.str());
-	}
-
-	return (this->events[pos].data.fd);
-}
-
-int Server::getSocket(void) const throw() { return (this->sockfd); }
-
-std::string const &Server::getPassword(void) const throw() { return (this->password); }
-
-Client *const &Server::getClient(int const &connfd)
-{
-	std::ostringstream err;
-
-	if (this->clients.find(connfd) == this->clients.end())
-	{
-		err << "Server::getClient: std::invalid_argument: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
-
-		throw std::invalid_argument(err.str());
-	}
-
-	return (this->clients[connfd]);
-}
-
-std::map<int, Client *const> &Server::getClients(void) throw() { return (this->clients); }
-
-void Server::addClient(void)
-{
-	epoll_event hints;
-	sockaddr_storage addr;
-	socklen_t addrlen = sizeof(addr);
-
-	hints.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-	hints.data.fd = accept(this->sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen);
-
 	try
 	{
-		if (hints.data.fd == -1)
-			throw RuntimeErrno("accept");
-
-		if (fcntl(hints.data.fd, F_SETFL, O_NONBLOCK) == -1)
-			throw RuntimeErrno("fcntl");
-
-		if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
-			throw RuntimeErrno("epoll_ctl");
-
-		this->clients.insert(std::make_pair(hints.data.fd, new Client(hints.data.fd)));
+		if (!client.isRegistered())
+			throw std::runtime_error("std::runtime_error: client must be registered to complete its registration with this server");
+		else if (client.getPassword() != this->password)
+		{
+			Server::produce(client, Message::Builder()
+										.withCommand(CMD_ERROR)
+										.addParameter("Closing link: (" + client.userId() + ") [Access denied by configuration]")
+										.build());
+			this->removeClient(client);
+		}
+		else
+		{
+			Server::produce(client, Message::Builder()
+										.withPrefix(SRV_NAME)
+										.withCommand(RPL_WELCOME)
+										.addParameter(client.getNickname())
+										.addParameter("Welcome to the Internet Relay Network " + client.str())
+										.build());
+		}
 	}
 	catch (std::exception const &e)
 	{
-		epoll_ctl(this->epollfd, EPOLL_CTL_DEL, hints.data.fd, this->events);
+		throw std::runtime_error("Server::completeRegistration: " + std::string(e.what()));
+	}
+
+	return;
+}
+
+void Server::poll(void)
+{
+	int n, fd;
+	Client *client;
+	std::string command;
+
+	try
+	{
+		n = epoll_wait(this->epollfd, Server::EVENTS, Server::MAX_EVENTS, -1);
+
+		if (n == -1)
+			throw RuntimeErrno("epoll_wait");
+
+		for (int i = 0; i < n; ++i)
+		{
+			fd = Server::EVENTS[i].data.fd;
+
+			if (fd == Server::sockfd)
+				this->addClient();
+			if (this->clients.find(fd) == this->clients.end())
+				continue;
+			else
+			{
+				client = &this->clients.find(fd)->second;
+
+				if (!this->consumeBuffer(*client))
+				{
+					this->removeClient(*client);
+
+					continue;
+				}
+
+				while (this->clients.find(fd) != this->clients.end() && !client->getMessages().empty())
+				{
+#ifndef NDEBUG
+					std::cout << "Debug: Client <-- #" << fd << ": " << client->getMessages().front() << std::endl;
+#endif
+
+					command = client->getMessages().front().getCommand();
+
+					try
+					{
+						Command::apply(command)(client->consume(), *client);
+					}
+					catch (Command::Unknown const &)
+					{
+						Command::reply(ERR_UNKNOWNCOMMAND, *client, command);
+					}
+					catch (std::exception const &e)
+					{
+						std::cerr << "Error: " << e.what() << std::endl;
+					}
+				}
+			}
+		}
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::poll: " + std::string(e.what()));
+	}
+
+	return;
+}
+
+void Server::addClient(void)
+{
+	static char buf[INET6_ADDRSTRLEN];
+	socklen_t addrlen = sizeof(sockaddr_storage);
+	sockaddr_storage addr;
+	epoll_event hints;
+	void *ip;
+	Client *client;
+
+	try
+	{
+		hints.events = EPOLLIN | EPOLLET;
+		hints.data.fd = accept(Server::sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen);
+
+		if (hints.data.fd == -1)
+			throw RuntimeErrno("accept");
+		else if (fcntl(hints.data.fd, F_SETFL, O_NONBLOCK) == -1)
+			throw RuntimeErrno("fcntl");
+		else if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
+			throw RuntimeErrno("epoll_ctl");
+		else if (addr.ss_family == AF_INET)
+			ip = &reinterpret_cast<sockaddr_in *>(&addr)->sin_addr;
+		else
+			ip = &reinterpret_cast<sockaddr_in6 *>(&addr)->sin6_addr;
+
+		this->clients.insert(std::make_pair(hints.data.fd, Client(hints.data.fd, inet_ntop(addr.ss_family, ip, buf, INET6_ADDRSTRLEN))));
+
+		client = &this->clients.find(hints.data.fd)->second;
+
+		this->buffers.insert(std::make_pair(client->getSocket(), ""));
+		this->buffers.find(client->getSocket())->second.reserve(Message::MAX_LEN);
+		this->overflows.insert(std::make_pair(client->getSocket(), false));
+		Server::produce(*client, Message::Builder()
+									 .withPrefix(SRV_NAME)
+									 .withCommand(CMD_NOTICE)
+									 .addParameter(client->getNickname())
+									 .addParameter("*** Your IP address (" + client->getHostaddr() + ") is used for your netwide unique identifier.")
+									 .build());
+	}
+	catch (std::exception const &e)
+	{
+		epoll_ctl(this->epollfd, EPOLL_CTL_DEL, hints.data.fd, Server::EVENTS);
 		close(hints.data.fd);
 
 		throw std::runtime_error("Server::addClient: " + std::string(e.what()));
@@ -126,59 +315,98 @@ void Server::addClient(void)
 	return;
 }
 
-void Server::setClient(int const &connfd, Client *const client)
+void Server::removeClient(Client const &client)
 {
-	this->clients.insert(std::make_pair(connfd, client));
+	try
+	{
+		if (this->clients.find(client.getSocket()) == this->clients.end())
+			throw std::runtime_error("std::runtime_error: unknown client " + client.str());
+		else if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, client.getSocket(), Server::EVENTS) == -1)
+			throw RuntimeErrno("epoll_ctl");
+		else if (close(client.getSocket()) == -1)
+			throw RuntimeErrno("close");
+
+		this->overflows.erase(client.getSocket());
+		this->buffers.erase(client.getSocket());
+		this->clients.erase(client.getSocket());
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::removeClient: " + std::string(e.what()));
+	}
 
 	return;
 }
 
-void Server::removeClient(std::map<int, Client *const>::iterator it)
+void Server::parseMessage(Client &client, std::size_t const &crlfpos)
 {
-	Client *const client = it->second;
+	std::string *buffer, input;
+	bool *overflow;
 
-	if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, client->getSocket(), this->events) == -1)
-		throw RuntimeErrno("Server::removeClient", "epoll_ctl");
-
-	this->clients.erase(it);
-
-	delete client;
-
-	return;
-}
-
-void Server::removeClient(int const &connfd)
-{
-	std::ostringstream err;
-	std::map<int, Client *const>::iterator it = this->clients.find(connfd);
-
-	if (it == this->clients.end())
+	try
 	{
-		err << "Server::removeClient: std::invalid_argument: `" << connfd << "': parameter must be a value returned by `Server::getEventSocket'";
+		buffer = &this->buffers.find(client.getSocket())->second;
+		overflow = &this->overflows.find(client.getSocket())->second;
 
-		throw std::invalid_argument(err.str());
+		if (crlfpos == std::string::npos)
+		{
+			if (buffer->length() == Message::MAX_LEN)
+				*overflow = true;
+
+			if (*overflow)
+				buffer->clear();
+
+			return;
+		}
+
+		input = buffer->substr(0, crlfpos) + Message::CRLF;
+
+		buffer->erase(0, buffer->find_first_not_of(Message::CRLF, crlfpos));
+
+		if (!*overflow && 0 < crlfpos && crlfpos <= Message::MAX_CHARS)
+			client.produce(Message::parse(input));
+
+		*overflow = false;
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::parseMessage: " + std::string(e.what()));
 	}
 
-	return this->removeClient(it);
+	return (this->parseMessage(client, buffer->find_first_of(Message::CRLF)));
 }
 
-int Server::getConnfd(std::string clientName) throw()
+bool Server::consumeBuffer(Client &client)
 {
-    for (std::map<int, Client *const>::const_iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
-        if (it->second->getNickname() == clientName) {
-            return it->first;
-        }
-    }
-	return -1;
-}
+	std::string *buffer;
+	ssize_t incap, nread;
 
-Channel *Server::findOrCreateChannel(std::string channelName) throw()
-{
-	Channel *channel = this->channels.find(channelName);
-	
-	if (channel == this->channels.end())
+	try
 	{
-		this->channels.insert(std::pair<std::string, Channel *>(channelName, Channel()));
+		do
+		{
+			buffer = &this->buffers.find(client.getSocket())->second;
+			incap = Message::MAX_LEN - buffer->length();
+			nread = recv(client.getSocket(), Server::BUFFER, incap, 0);
+
+			if (!nread)
+				return (false);
+			else if (nread == -1)
+			{
+				if (errno == EAGAIN || errno == EWOULDBLOCK)
+					break;
+
+				throw RuntimeErrno("recv");
+			}
+
+			buffer->append(Server::BUFFER, nread);
+			this->parseMessage(client, buffer->find_first_of(Message::CRLF, buffer->length() - nread));
+		} while (incap == nread);
 	}
-	return channel->second;
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::consumeBuffer: " + std::string(e.what()));
+	}
+
+	return (true);
 }

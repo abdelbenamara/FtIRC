@@ -3,92 +3,83 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 20:02:48 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/28 20:32:38 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __SERVER_HPP__
 #define __SERVER_HPP__
 
-#include <limits>
-#include <map>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <utility>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <pair>
+#include <algorithm>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <queue>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 #include "Client.hpp"
+#include "Command.hpp"
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
-#include "Channel.hpp"
+
+#define SRV_NAME "ft_irc"
+#define SRV_OPER_NAME "root"
+#define SRV_OPER_PASSWORD "12345"
 
 class Server
 {
 public:
-	class Builder
-	{
-	public:
-		Builder(void);
-		virtual ~Builder(void) throw();
-
-		Builder &withNumericServ(std::string const &numericserv);
-		Builder &withPassword(std::string const &password);
-		Server *build(void);
-
-	private:
-		int epollfd, sockfd;
-		std::string numericserv, password;
-
-		Builder(Builder const & /* src */);
-
-		Builder &operator=(Builder const & /* rhs */) throw();
-
-		static std::string const gai_strerror(int const &errcode);
-
-		void clear(void) throw();
-	};
+	static Server &getInstance(std::string const &numericserv = "6667", std::string const &password = "");
+	static void produce(Client const &client, Message const &message);
 
 	virtual ~Server(void) throw();
 
-	in_port_t port(void) const;
-	int waitForEvents(void);
-	int getEventSocket(int const &pos) const;
-	int getSocket(void) const throw();
-	std::string const &getPassword(void) const throw();
-	Client *const &getClient(int const &connfd);
-	std::map<int, Client *const> &getClients(void) throw();
-	void addClient(void);
-	void setClient(int const &connfd, Client *const client);
-	void removeClient(std::map<int, Client *const>::iterator cit);
-	void removeClient(int const &connfd);
-	int getConnfd(std::string clientName) throw();
-	Channel *findOrCreateChannel(std::string channelName) throw();
-	
+	in_port_t const &getPort(void) const throw();
+	std::map<int, Client> const &getClients(void) const throw();
+
+	void completeRegistration(Client const &client);
+	void poll(void);
+	void removeClient(Client const &client);
 
 private:
-	static int const MAXEVENTS;
+	static int const MAX_EVENTS;
 
-	int const epollfd, sockfd;
+	static epoll_event EVENTS[];
+	static char BUFFER[];
+	static int sockfd;
+
+	static int initServerPort(std::string const &numericserv);
+
+	int const epollfd;
+	in_port_t const port;
 	std::string const password;
-	epoll_event *const events;
 
-	int nfds;
-	std::map<int, Client *const> clients;
-	std::map<std::string, Channel *const> channels;
+	std::map<int, Client> clients;
+	std::map<int, std::string> buffers;
+	std::map<int, bool> overflows;
 
-	Server(void);
-	Server(int const &epollfd, int const &sockfd, std::string const &password);
-	Server(Server const & /* src */);
+	Server(std::string const &numericserv, std::string const &password);
 
-	Server &operator=(Server const & /* rhs */) throw();
+	Server(void);					   /* = delete (C++11) */
+	Server(Server const &);			   /* = delete (C++11) */
+	Server &operator=(Server const &); /* = delete (C++11) */
+
+	void addClient(void);
+	void parseMessage(Client &client, std::size_t const &crlfpos);
+	bool consumeBuffer(Client &client);
 };
 
 #endif
