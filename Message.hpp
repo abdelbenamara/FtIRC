@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/14 16:50:53 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/28 20:31:47 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,14 @@
 #define __MESSAGE_HPP__
 
 #include <algorithm>
+#include <iostream>
 #include <locale>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <iostream>
+
+#define MSG_SIZE 512
 
 class Message
 {
@@ -28,48 +30,53 @@ public:
     {
     public:
         Builder(void);
+
         virtual ~Builder(void) throw();
 
-        Builder &withInput(std::string const &input);
+        Builder &withPrefix(std::string const &prefix);
+        Builder &withCommand(std::string const &command);
+        Builder &addParameter(std::string const &parameter);
+        Builder &withParameters(std::vector<std::string> const &parameters);
+
         Message build(void);
 
     private:
-        std::string input, prefix, command;
+        static bool isNotInCommandFormat(char const &c);
+
+        bool trailing;
+        std::string prefix, command;
         std::vector<std::string> parameters;
 
-        Builder(Builder const & /* src */);
-
-        Builder &operator=(Builder const & /* rhs */) throw();
-
-        void setPrefix(std::string const &prefix);
-        void setCommand(std::string const &command);
+        Builder(Builder const &);                    /* = delete (C++11) */
+        Builder &operator=(Builder const &) throw(); /* = delete (C++11) */
     };
 
     static std::locale const LOCALE;
     static std::string const CRLF;
-    static std::size_t const MAXSIZE, MAXCHARS;
-    static char BUFFER[];
-    static bool isNotInServernameFormat(char const &c);
-    static bool isNotInNicknameFormat(char const &c);
-    static bool isNotInCommandFormat(char const &c);
+    static std::size_t const MAX_LEN, MAX_CHARS, NUM_RPL_LEN, PARAMS_MAX_LEN;
 
+    static Message parse(std::string const &input);
+
+    Message(void);
     Message(Message const &src);
+
     virtual ~Message(void);
 
-    std::string const &getInput(void) const throw();
     std::string const &getPrefix(void) const throw();
     std::string const &getCommand(void) const throw();
     std::vector<std::string> const &getParameters(void) const throw();
-    std::string toString(void) const;
+
+    std::string str(void) const;
 
 private:
-    std::string const input, prefix, command;
+    std::string const prefix, command;
     std::vector<std::string> const parameters;
 
-    Message(void);
-    Message(std::string const &input, std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
+    Message(std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
 
-    Message &operator=(Message const & /* rhs */) throw();
+    Message &operator=(Message const &); /* = delete (C++11) */
 };
+
+std::ostream &operator<<(std::ostream &o, Message const &i);
 
 #endif
