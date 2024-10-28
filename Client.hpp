@@ -3,65 +3,79 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/16 20:35:15 by ejankovs         ###   ########.fr       */
+/*   Updated: 2024/10/28 20:29:48 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __CLIENT_HPP__
 #define __CLIENT_HPP__
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <iomanip>
 #include <queue>
+#include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <map>
-//#include "Channel.hpp"
 #include "Message.hpp"
-#include "RuntimeErrno.hpp"
 
-class Channel;
+#define USR_MODE_I 'i'
+#define USR_MODE_W 'w'
+#define USR_MODE_O 'o'
 
 class Client
 {
 public:
-	Client(int const connfd);
-	virtual ~Client(void) throw();
+	static std::size_t const NICK_MAX_LEN;
+	static std::set<char> const USER_MODES;
 
-	int getSocket(void) const throw();
-	bool updateInput(void);
-	bool hasMessage(void) const throw();
-	Message const &message(void);
-	void removeMessage(void);
-	bool isAuthorized(void) const throw();
-	void setAuthorized(bool const &isAuthorized) throw();
-	virtual bool isIdentified(void) throw();
-	virtual void identify(std::string const &username);
-	std::string const &getNickname(void) const throw();
-	void setNickname(std::string const &nickname) throw();
-	virtual bool isRegistered(void) throw();
-	virtual bool isGone(void) throw();
-	virtual void quit(void) throw();
-	std::map<int, Channel *const> &getChannels(void) throw();
+	static std::string userModes(void);
 
-private:
-	int const connfd;
-	bool isMessageTooLong, authorized, identified, gone;
-	std::string input, nickname, username, host;
-	std::queue<Message> messages;
-	std::map<std::string, Channel *const> channels;
-
-	Client(void);
+	Client(int const &connfd, std::string const &hostaddr);
 	Client(Client const &src);
 
-	Client &operator=(Client const & /* rhs */) throw();
+	virtual ~Client(void) throw();
 
-	void cleanupInput(std::size_t const &crlfpos);
-	void addMessage(std::size_t const &crlfpos);
+	int const &getSocket(void) const throw();
+	std::string const &getHostaddr(void) const throw();
+	bool const &isRegistered(void) const throw();
+	std::queue<Message> const &getMessages(void) const throw();
+	std::string const &getPassword(void) const throw();
+	std::string const &getNickname(void) const throw();
+	std::string const &getUsername(void) const throw();
+	std::string const &getRealname(void) const throw();
+	std::set<char> const &getModes(void) const throw();
+
+	std::string userId(void) const;
+	std::string str(void) const;
+
+	void produce(Message const &message);
+	Message consume(void);
+	void setPassword(std::string const &password);
+	void setNickname(std::string const &nickname);
+	void setUsername(std::string const &username);
+	void setRealname(std::string const &realname);
+	void addMode(char const &mode);
+	void removeMode(char const &mode);
+
+private:
+	static int unique;
+
+	static std::set<char> initModes(void);
+	static bool isNotInNicknameFormat(char const &c);
+
+	int const uid, connfd;
+	std::string const hostaddr;
+
+	bool registered;
+	std::queue<Message> messages;
+	std::string password, nickname, username, realname;
+	std::set<char> modes;
+
+	Client(void);					   /* = delete (C++11) */
+	Client &operator=(Client const &); /* = delete (C++11) */
 };
 
 #endif
