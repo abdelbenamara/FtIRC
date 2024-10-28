@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ejankovs <ejankovs@student.42.fr>          +#+  +:+       +#+         #
+#    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/10/16 20:33:59 by ejankovs         ###   ########.fr        #
+#    Updated: 2024/10/28 18:12:32 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,12 +16,10 @@ INCLUDES := -I$(CURDIR)
 
 SRCS := RuntimeErrno.cpp
 SRCS += Message.cpp
-SRCS += MessageBuilder.cpp
 SRCS += Client.cpp 
 SRCS += Server.cpp
-SRCS += ServerBuilder.cpp
 SRCS += Command.cpp
-SRCS += Channel.cpp
+# SRCS += Channel.cpp
 SRCS += ircserv.cpp
 
 OBJS := $(SRCS:.cpp=.o)
