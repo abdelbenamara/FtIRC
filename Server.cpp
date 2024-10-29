@@ -6,13 +6,14 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:36:18 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 12:08:25 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-int const Server::MAX_EVENTS = 16;
+unsigned int const Server::MAX_EVENTS = SRV_MAX_EVENTS;
+std::size_t const Server::PASS_MAX_LEN = Message::MAX_CHARS - std::string(CMD_PASS).length() - 2;
 
 epoll_event Server::EVENTS[Server::MAX_EVENTS];
 char Server::BUFFER[MSG_SIZE];
@@ -46,6 +47,23 @@ void Server::produce(Client const &client, Message const &message)
 	}
 
 	return;
+}
+
+void Server::produce(Client const &client, std::string const &command, std::string const &comment)
+{
+	try
+	{
+		return (Server::produce(client, Message::Builder()
+											.withPrefix(SRV_NAME)
+											.withCommand(command)
+											.addParameter(client.getNickname())
+											.addParameter(comment)
+											.build()));
+	}
+	catch (std::exception const &e)
+	{
+		throw std::runtime_error("Server::produce: " + std::string(e.what()));
+	}
 }
 
 int Server::initServerPort(std::string const &numericserv)
@@ -115,9 +133,14 @@ try : epollfd(epoll_create1(0)),
 	buffers(),
 	overflows()
 {
+	std::ostringstream err;
 	epoll_event hints;
 
-	if (this->epollfd == -1)
+	if (this->password.length() > Server::PASS_MAX_LEN)
+		throw std::length_error(reinterpret_cast<std::ostringstream &>(err << "std::length_error: " << this->password.length() << ": password must not have more than " << Server::PASS_MAX_LEN << " characters").str());
+	else if (this->password.find_first_of("\0\r\n", 0, 3) != std::string::npos)
+		throw std::domain_error("std::domain_error: password must have any character except: NUL, CR, LF");
+	else if (this->epollfd == -1)
 		throw RuntimeErrno("epoll_create1");
 	else if (fcntl(Server::sockfd, F_SETFL, O_NONBLOCK) == -1)
 		throw RuntimeErrno("fcntl");
@@ -185,12 +208,7 @@ void Server::completeRegistration(Client const &client)
 		}
 		else
 		{
-			Server::produce(client, Message::Builder()
-										.withPrefix(SRV_NAME)
-										.withCommand(RPL_WELCOME)
-										.addParameter(client.getNickname())
-										.addParameter("Welcome to the Internet Relay Network " + client.str())
-										.build());
+			Server::produce(client, RPL_WELCOME, "Welcome to the Internet Relay Network " + client.str());
 		}
 	}
 	catch (std::exception const &e)
@@ -247,7 +265,7 @@ void Server::poll(void)
 					}
 					catch (Command::Unknown const &)
 					{
-						Command::reply(ERR_UNKNOWNCOMMAND, *client, command);
+						Command::reply(ERR_UNKNOWNCOMMAND, *client, client->consume().getCommand());
 					}
 					catch (std::exception const &e)
 					{
@@ -297,12 +315,7 @@ void Server::addClient(void)
 		this->buffers.insert(std::make_pair(client->getSocket(), ""));
 		this->buffers.find(client->getSocket())->second.reserve(Message::MAX_LEN);
 		this->overflows.insert(std::make_pair(client->getSocket(), false));
-		Server::produce(*client, Message::Builder()
-									 .withPrefix(SRV_NAME)
-									 .withCommand(CMD_NOTICE)
-									 .addParameter(client->getNickname())
-									 .addParameter("*** Your IP address (" + client->getHostaddr() + ") is used for your netwide unique identifier.")
-									 .build());
+		Server::produce(*client, CMD_NOTICE, "*** Your IP address (" + client->getHostaddr() + ") is used for your netwide unique identifier.");
 	}
 	catch (std::exception const &e)
 	{

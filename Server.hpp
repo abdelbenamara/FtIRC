@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:32:38 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:30:41 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@
 #include "Message.hpp"
 #include "RuntimeErrno.hpp"
 
+#define SRV_MAX_EVENTS 16
 #define SRV_NAME "ft_irc"
 #define SRV_OPER_NAME "root"
 #define SRV_OPER_PASSWORD "12345"
@@ -44,6 +45,7 @@ class Server
 public:
 	static Server &getInstance(std::string const &numericserv = "6667", std::string const &password = "");
 	static void produce(Client const &client, Message const &message);
+	static void produce(Client const &client, std::string const &command, std::string const &comment);
 
 	virtual ~Server(void) throw();
 
@@ -55,7 +57,8 @@ public:
 	void removeClient(Client const &client);
 
 private:
-	static int const MAX_EVENTS;
+	static unsigned int const MAX_EVENTS;
+	static std::size_t const PASS_MAX_LEN;
 
 	static epoll_event EVENTS[];
 	static char BUFFER[];
