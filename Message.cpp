@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 21:06:54 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:23:06 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ Message::Builder &Message::Builder::withPrefix(std::string const &prefix)
             throw std::domain_error("std::domain_error: prefix must not begin with a hyphen character");
         else if (prefix.at(0) == '.')
             throw std::domain_error("std::domain_error: prefix must not begin with a period character");
-        else if (prefix.find_first_of(std::string("\0\r\n ")) != std::string::npos)
+        else if (prefix.find_first_of("\0\r\n ", 0, 4) != std::string::npos)
             throw std::domain_error("std::domain_error: prefix must have any character except: NUL, CR, LF, SPACE");
 
         this->prefix = prefix;
@@ -83,7 +83,7 @@ Message::Builder &Message::Builder::addParameter(std::string const &parameter)
     {
         if (this->parameters.size() == Message::PARAMS_MAX_LEN)
             throw std::length_error(reinterpret_cast<std::ostringstream &>(err << "std::length_error: a message must not have more than " << Message::PARAMS_MAX_LEN << " parameters").str());
-        else if (parameter.find_first_of(std::string("\0\r\n")) != std::string::npos)
+        else if (parameter.find_first_of("\0\r\n", 0, 3) != std::string::npos)
             throw std::domain_error("std::domain_error: parameter must have any character except: NUL, CR, LF");
         else if (this->trailing)
             throw std::logic_error("std::logic_error: no parameter must be supplied after the trailing one");
