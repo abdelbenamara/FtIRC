@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/29 17:58:25 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 18:36:57 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,11 +67,10 @@ namespace irc
 
 		static epoll_event events[];
 		static char buffer[];
-		static int sockfd;
+		static int epollfd, sockfd;
 
 		static int initServerPort(std::string const &numericserv);
 
-		int const epollfd;
 		in_port_t const port;
 		std::string const password;
 

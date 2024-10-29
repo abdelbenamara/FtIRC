@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/29 17:57:38 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 18:38:55 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ namespace irc
 
 	char Server::buffer[MSG_SIZE];
 
-	int Server::sockfd = -1;
+	int Server::epollfd = epoll_create1(0), Server::sockfd = -1;
 
 	Server &Server::getInstance(std::string const &numericserv, std::string const &password)
 	{
@@ -42,7 +42,7 @@ namespace irc
 			buf = message.str();
 
 			if (send(client.getSocket(), buf.c_str(), buf.length(), 0) == -1)
-				throw irc::RuntimeErrno("send");
+				throw RuntimeErrno("send");
 
 #ifndef NDEBUG
 			std::cout << "Debug: Server --> Client #" << client.getSocket() << ": " << message << std::endl;
@@ -116,9 +116,9 @@ namespace irc
 			freeaddrinfo(hints.ai_next);
 
 			if (info == NULL)
-				throw irc::RuntimeErrno("socket / bind");
+				throw RuntimeErrno("socket / bind");
 			else if (getsockname(Server::sockfd, reinterpret_cast<sockaddr *>(&addr), &hints.ai_addrlen) == -1)
-				throw irc::RuntimeErrno("getsockname");
+				throw RuntimeErrno("getsockname");
 			else if (addr.ss_family == AF_INET)
 				port = reinterpret_cast<sockaddr_in *>(&addr)->sin_port;
 			else
@@ -133,8 +133,7 @@ namespace irc
 	}
 
 	Server::Server(std::string const &numericserv, std::string const &password)
-	try : epollfd(epoll_create1(0)),
-		port(Server::initServerPort(numericserv)),
+	try : port(Server::initServerPort(numericserv)),
 		password(password),
 		clients(),
 		buffers(),
@@ -143,29 +142,29 @@ namespace irc
 		std::ostringstream err;
 		epoll_event hints;
 
-		if (this->password.length() > Server::PASS_MAX_LEN)
+		if (Server::epollfd == -1)
+			throw RuntimeErrno("epoll_create1");
+		else if (this->password.length() > Server::PASS_MAX_LEN)
 			throw std::length_error(reinterpret_cast<std::ostringstream &>(err << "std::length_error: " << this->password.length() << ": password must not have more than " << Server::PASS_MAX_LEN << " characters").str());
 		else if (this->password.find_first_of("\0\r\n", 0, 3) != std::string::npos)
 			throw std::domain_error("std::domain_error: password must have any character except: NUL, CR, LF");
-		else if (this->epollfd == -1)
-			throw irc::RuntimeErrno("epoll_create1");
 		else if (fcntl(Server::sockfd, F_SETFL, O_NONBLOCK) == -1)
-			throw irc::RuntimeErrno("fcntl");
+			throw RuntimeErrno("fcntl");
 		else if (listen(Server::sockfd, Server::MAX_CLIENTS) == -1)
-			throw irc::RuntimeErrno("listen");
+			throw RuntimeErrno("listen");
 
 		hints.events = EPOLLIN;
 		hints.data.fd = Server::sockfd;
 
-		if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
-			throw irc::RuntimeErrno("epoll_ctl");
+		if (epoll_ctl(Server::epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
+			throw RuntimeErrno("epoll_ctl");
 
 		return;
 	}
 	catch (std::exception const &e)
 	{
 		close(Server::sockfd);
-		close(this->epollfd);
+		close(Server::epollfd);
 
 		throw std::runtime_error("Server::Server: " + std::string(e.what()));
 	}
@@ -190,7 +189,7 @@ namespace irc
 		}
 
 		close(Server::sockfd);
-		close(this->epollfd);
+		close(Server::epollfd);
 
 		return;
 	}
@@ -234,10 +233,10 @@ namespace irc
 
 		try
 		{
-			n = epoll_wait(this->epollfd, Server::events, Server::MAX_EVENTS, -1);
+			n = epoll_wait(Server::epollfd, Server::events, Server::MAX_EVENTS, -1);
 
 			if (n == -1)
-				throw irc::RuntimeErrno("epoll_wait");
+				throw RuntimeErrno("epoll_wait");
 
 			for (int i = 0; i < n; ++i)
 			{
@@ -305,11 +304,11 @@ namespace irc
 			hints.data.fd = accept(Server::sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen);
 
 			if (hints.data.fd == -1)
-				throw irc::RuntimeErrno("accept");
+				throw RuntimeErrno("accept");
 			else if (fcntl(hints.data.fd, F_SETFL, O_NONBLOCK) == -1)
-				throw irc::RuntimeErrno("fcntl");
-			else if (epoll_ctl(this->epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
-				throw irc::RuntimeErrno("epoll_ctl");
+				throw RuntimeErrno("fcntl");
+			else if (epoll_ctl(Server::epollfd, EPOLL_CTL_ADD, hints.data.fd, &hints) == -1)
+				throw RuntimeErrno("epoll_ctl");
 			else if (addr.ss_family == AF_INET)
 				ip = &reinterpret_cast<sockaddr_in *>(&addr)->sin_addr;
 			else
@@ -326,7 +325,7 @@ namespace irc
 		}
 		catch (std::exception const &e)
 		{
-			epoll_ctl(this->epollfd, EPOLL_CTL_DEL, hints.data.fd, Server::events);
+			epoll_ctl(Server::epollfd, EPOLL_CTL_DEL, hints.data.fd, Server::events);
 			close(hints.data.fd);
 
 			throw std::runtime_error("Server::addClient: " + std::string(e.what()));
@@ -341,10 +340,10 @@ namespace irc
 		{
 			if (this->clients.find(client.getSocket()) == this->clients.end())
 				throw std::runtime_error("std::runtime_error: unknown client " + client.str());
-			else if (epoll_ctl(this->epollfd, EPOLL_CTL_DEL, client.getSocket(), Server::events) == -1)
-				throw irc::RuntimeErrno("epoll_ctl");
+			else if (epoll_ctl(Server::epollfd, EPOLL_CTL_DEL, client.getSocket(), Server::events) == -1)
+				throw RuntimeErrno("epoll_ctl");
 			else if (close(client.getSocket()) == -1)
-				throw irc::RuntimeErrno("close");
+				throw RuntimeErrno("close");
 
 			this->overflows.erase(client.getSocket());
 			this->buffers.erase(client.getSocket());
@@ -416,7 +415,7 @@ namespace irc
 					if (errno == EAGAIN || errno == EWOULDBLOCK)
 						break;
 
-					throw irc::RuntimeErrno("recv");
+					throw RuntimeErrno("recv");
 				}
 
 				buffer->append(Server::buffer, nread);
