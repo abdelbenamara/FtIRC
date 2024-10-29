@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:45:29 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:22:25 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ void Client::setPassword(std::string const &password)
 		if (this->registered)
 			throw std::runtime_error("std::runtime_error: client must not set password once registered");
 
-		if (password.find_first_of(std::string("\0\r\n")) != std::string::npos)
+		if (password.find_first_of("\0\r\n", 0, 3) != std::string::npos)
 			throw std::domain_error("std::domain_error: password must have any character except: NUL, CR, LF");
 
 		this->password = password;
@@ -193,7 +193,7 @@ void Client::setUsername(std::string const &username)
 		if (this->registered)
 			throw std::runtime_error("std::runtime_error: client must not set username once registered");
 
-		if (username.find_first_of(std::string("\0\r\n @")) != std::string::npos)
+		if (username.find_first_of("\0\r\n @", 0, 5) != std::string::npos)
 			throw std::domain_error("std::domain_error: username must have any character except: NUL, CR, LF, SPACE, @");
 
 		this->username = username;
@@ -214,7 +214,7 @@ void Client::setRealname(std::string const &realname)
 		if (this->registered)
 			throw std::runtime_error("std::runtime_error: client must not set realname once registered");
 
-		if (realname.find_first_of(std::string("\0\r\n")) != std::string::npos)
+		if (realname.find_first_of("\0\r\n", 0, 3) != std::string::npos)
 			throw std::domain_error("std::domain_error: realname must have any character except: NUL, CR, LF");
 
 		this->realname = realname;
