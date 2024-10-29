@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/21 14:27:51 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 17:57:38 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ static void noop(int /* signum */) throw() { return; }
 
 int main(int argc, char *argv[])
 {
-	Server *server;
+	irc::Server *server;
 
 	if (argc != 3)
 	{
@@ -30,13 +30,13 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		server = &Server::getInstance(argv[1], argv[2]);
+		server = &irc::Server::getInstance(argv[1], argv[2]);
 
 		if (std::signal(SIGINT, ::noop) == SIG_ERR)
-			throw RuntimeErrno("std::signal (SIGINT)");
+			throw irc::RuntimeErrno("std::signal (SIGINT)");
 
 		if (std::signal(SIGQUIT, ::noop) == SIG_ERR)
-			throw RuntimeErrno("std::signal (SIGQUIT)");
+			throw irc::RuntimeErrno("std::signal (SIGQUIT)");
 
 		std::cout << "Info: IRC server listening on port " << server->getPort() << std::endl;
 
