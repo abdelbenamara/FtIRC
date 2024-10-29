@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 18:00:06 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:34:22 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #define CMD_USER "USER"
 #define CMD_OPER "OPER"
 #define CMD_QUIT "QUIT"
+#define CMD_SQUIT "SQUIT"
 #define CMD_NOTICE "NOTICE"
 #define CMD_PRIVMSG "PRIVMSG"
 #define CMD_JOIN "JOIN"
@@ -78,6 +79,7 @@ private:
     static void user(Message const &message, Client &client);
     static void oper(Message const &message, Client &client);
     static void quit(Message const &message, Client &client);
+    // static void squit(Message const &message, Client &client);
     // static void join(Message const &message, Client &client);
     // static void notice(Message const &message, Client &client);
     // static void privmsg(Message const &message, Client &client);

@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/28 20:34:40 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:36:07 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ std::map<std::string, Command::t_command> Command::initCommands(void)
     map.insert(std::make_pair(CMD_USER, &Command::user));
     map.insert(std::make_pair(CMD_OPER, &Command::oper));
     map.insert(std::make_pair(CMD_QUIT, &Command::quit));
+    // map.insert(std::make_pair(CMD_SQUIT, &Command::squit));
     // map.insert(std::make_pair(CMD_JOIN, &Command::join));
     // map.insert(std::make_pair(CMD_NOTICE, &Command::notice));
     // map.insert(std::make_pair(CMD_PRIVMSG, &Command::privmsg));
@@ -206,12 +207,8 @@ void Command::oper(Message const &message, Client &client)
     {
         client.addMode(USR_MODE_O);
 
-        Server::produce(client, Message::Builder()
-                                    .withPrefix(SRV_NAME)
-                                    .withCommand(RPL_YOUREOPER)
-                                    .addParameter(client.getNickname())
-                                    .addParameter("You are now an IRC operator")
-                                    .build());
+        Server::produce(client, CMD_MODE, "+o");
+        Server::produce(client, RPL_YOUREOPER, "You are now an IRC operator");
     }
 }
 
