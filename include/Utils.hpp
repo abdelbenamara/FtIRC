@@ -1,28 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RuntimeErrno.hpp                                   :+:      :+:    :+:   */
+/*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/19 15:14:28 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/24 23:18:31 by abenamar         ###   ########.fr       */
+/*   Created: 2024/10/29 16:14:22 by abenamar          #+#    #+#             */
+/*   Updated: 2024/10/29 17:54:34 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef __RUNTIMEERRNO_HPP__
-#define __RUNTIMEERRNO_HPP__
+#ifndef __UTILS_HPP__
+#define __UTILS_HPP__
 
-#include <cerrno>
-#include <cstring>
-#include <stdexcept>
+#include <set>
+#include <sstream>
 #include <string>
 
-class RuntimeErrno : public std::runtime_error
+namespace irc
 {
-public:
-    explicit RuntimeErrno(std::string const &source);
-    explicit RuntimeErrno(std::string const &parent, std::string const &source);
-};
+    namespace utils
+    {
+        std::string charset_to_string(std::set<char> sequence, std::string const &delimiter);
+    } // namespace utils
+} // namespace utils
 
 #endif
