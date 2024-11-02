@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/01 19:53:38 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/02 16:42:47 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 #include <string>
 
 #include "Message.hpp"
-#include "Server.hpp"
 #include "utils.hpp"
 
 #define USR_NICK_LEN ((std::size_t)9)
