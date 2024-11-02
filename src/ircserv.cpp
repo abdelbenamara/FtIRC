@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/31 18:40:21 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/02 16:59:56 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,7 @@ int main(int argc, char *argv[])
 
 		if (std::signal(SIGINT, ::noop) == SIG_ERR)
 			throw irc::RuntimeErrno("std::signal (SIGINT)");
-
-		if (std::signal(SIGQUIT, ::noop) == SIG_ERR)
+		else if (std::signal(SIGQUIT, ::noop) == SIG_ERR)
 			throw irc::RuntimeErrno("std::signal (SIGQUIT)");
 
 		std::cout << "Info: IRC server listening on port " << server->getPort() << std::endl;
