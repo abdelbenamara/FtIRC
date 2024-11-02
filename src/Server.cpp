@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/02 15:04:03 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/02 21:09:23 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,7 +311,7 @@ void irc::Server::addClient(void)
 
 	try
 	{
-		hints.events = EPOLLIN | EPOLLET;
+		hints.events = EPOLLIN | EPOLLOUT | EPOLLET;
 		hints.data.fd = accept(irc::Server::sockfd, reinterpret_cast<sockaddr *>(&addr), &addrlen);
 
 		if (hints.data.fd == -1)
