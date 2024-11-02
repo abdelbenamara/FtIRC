@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/29 17:44:12 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/01 19:53:38 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,13 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+
 #include "Message.hpp"
-#include "Utils.hpp"
+#include "Server.hpp"
+#include "utils.hpp"
+
+#define USR_NICK_LEN ((std::size_t)9)
+#define USR_CHAN_LIMIT ((std::size_t)10)
 
 #define USR_MODE_I 'i'
 #define USR_MODE_W 'w'
@@ -31,13 +36,16 @@ namespace irc
 	class Client
 	{
 	public:
-		static std::size_t const NICK_MAX_LEN;
+		static std::size_t const NICK_MAX_LEN, MAX_CHANNELS;
 		static std::set<char> const USER_MODES;
 
 		Client(int const &connfd, std::string const &hostaddr);
 		Client(Client const &src);
 
 		virtual ~Client(void) throw();
+
+		bool operator==(Client const &rhs) const;
+		bool operator!=(Client const &rhs) const;
 
 		int const &getSocket(void) const throw();
 		std::string const &getHostaddr(void) const throw();
@@ -64,7 +72,6 @@ namespace irc
 	private:
 		static int unique;
 
-		static std::set<char> initModes(void);
 		static bool isNotInNicknameFormat(char const &c);
 
 		int const uid, connfd;
@@ -74,6 +81,7 @@ namespace irc
 		std::queue<Message> messages;
 		std::string password, nickname, username, realname;
 		std::set<char> modes;
+		std::set<std::string> channels;
 
 		Client(void);					   /* = delete (C++11) */
 		Client &operator=(Client const &); /* = delete (C++11) */

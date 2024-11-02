@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/29 17:49:22 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/01 17:48:25 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,9 @@
 #include <string>
 #include <vector>
 
-#define MSG_SIZE ((unsigned int)512)
+#include "utils.hpp"
+
+#define MSG_LINE_LEN ((unsigned int)512)
 
 namespace irc
 {
@@ -49,15 +51,15 @@ namespace irc
             std::string prefix, command;
             std::vector<std::string> parameters;
 
-            Builder(Builder const &);                    /* = delete (C++11) */
-            Builder &operator=(Builder const &) throw(); /* = delete (C++11) */
+            Builder(Builder const &);            /* = delete (C++11) */
+            Builder &operator=(Builder const &); /* = delete (C++11) */
         };
 
         static std::locale const LOCALE;
         static std::string const CRLF;
         static std::size_t const MAX_LEN, MAX_CHARS, NUM_RPL_LEN, PARAMS_MAX_LEN;
 
-        static Message parse(std::string const &input);
+        static Message from(std::string const &input);
 
         Message(Message const &src);
 
