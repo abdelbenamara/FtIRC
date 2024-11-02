@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/10/29 17:57:38 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/10/31 18:40:21 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <iostream>
 #include "Server.hpp"
 
-static void noop(int /* signum */) throw() { return; }
+static void noop(int) { return; }
 
 int main(int argc, char *argv[])
 {
