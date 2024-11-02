@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/10/29 18:28:24 by abenamar         ###   ########.fr        #
+#    Updated: 2024/11/01 16:24:48 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,12 +17,11 @@ INCLUDES := -I$(CURDIR)/include
 SRCDIR := src
 
 SRCS := RuntimeErrno.cpp
-SRCS += Utils.cpp
-SRCS += Message.cpp
-SRCS += Client.cpp 
-SRCS += Server.cpp
-SRCS += Command.cpp
 SRCS += Channel.cpp
+SRCS += Client.cpp 
+SRCS += Command.cpp
+SRCS += Message.cpp
+SRCS += Server.cpp
 SRCS += ircserv.cpp
 
 OBJDIR := obj
