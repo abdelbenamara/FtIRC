@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/02 15:00:19 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/02 16:56:27 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@
 #define CMD_OPER "OPER"
 #define CMD_QUIT "QUIT"
 #define CMD_SQUIT "SQUIT"
-#define CMD_NOTICE "NOTICE"
 #define CMD_PRIVMSG "PRIVMSG"
+#define CMD_NOTICE "NOTICE"
 #define CMD_JOIN "JOIN"
 #define CMD_MODE "MODE"
 #define CMD_TOPIC "TOPIC"
@@ -68,14 +68,14 @@ namespace irc
     class Command
     {
     public:
-        typedef void (*t_command)(Message const &, Client &);
-
         static void apply(Message const &message, Client &client);
         static void reply(std::string const &error, Client const &client, std::string const &argument);
 
         virtual ~Command(void) throw();
 
     private:
+        typedef void (*t_command)(Message const &, Client &);
+
         static std::map<std::string, std::string> const ERRORS;
         static std::map<std::string, t_command> const COMMANDS;
 
