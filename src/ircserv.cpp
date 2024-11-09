@@ -6,21 +6,21 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/02 16:59:56 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/09 14:26:38 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <csignal>
 #include <exception>
 #include <iostream>
+#include "Config.hpp"
 #include "Server.hpp"
+#include "utils.hpp"
 
 static void noop(int) { return; }
 
 int main(int argc, char *argv[])
 {
-	irc::Server *server;
-
 	if (argc != 3)
 	{
 		std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
@@ -30,17 +30,25 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		server = &irc::Server::getInstance(argv[1], argv[2]);
+		try
+		{
+			std::cout << "Info: IRC server configured from " << irc::Config::getInstance().getText(PRP_CONFIGFILE) << std::endl;
+		}
+		catch (std::exception const &e)
+		{
+			std::cerr << "Error: " << e.what() << std::endl;
+			std::cout << "Warn: IRC server configured from default properties" << std::endl;
+		}
+
+		std::cout << "Info: IRC server listening on port " << irc::Server::getInstance(argv[1], argv[2]).getPort() << std::endl;
 
 		if (std::signal(SIGINT, ::noop) == SIG_ERR)
-			throw irc::RuntimeErrno("std::signal (SIGINT)");
+			throw irc::utils::RuntimeErrno("std::signal (SIGINT)");
 		else if (std::signal(SIGQUIT, ::noop) == SIG_ERR)
-			throw irc::RuntimeErrno("std::signal (SIGQUIT)");
-
-		std::cout << "Info: IRC server listening on port " << server->getPort() << std::endl;
+			throw irc::utils::RuntimeErrno("std::signal (SIGQUIT)");
 
 		while (true)
-			server->poll();
+			irc::Server::getInstance().poll();
 	}
 	catch (std::exception const &e)
 	{
