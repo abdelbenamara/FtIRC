@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/02 14:39:17 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/09 15:22:17 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,13 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <csignal>
+#include <ctime>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <queue>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -35,15 +38,9 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Command.hpp"
+#include "Config.hpp"
 #include "Message.hpp"
-#include "RuntimeErrno.hpp"
-
-#define SRV_NAME "ft.irc.local"
-#define SRV_MAX_CLIENTS ((std::size_t)SOMAXCONN)
-#define SRV_MAX_CHANNELS ((std::size_t)20)
-#define SRV_MAX_EVENTS ((std::size_t)16)
-#define SRV_OPER_NAME "root"
-#define SRV_OPER_PASSWORD "12345"
+#include "utils.hpp"
 
 namespace irc
 {
@@ -53,38 +50,38 @@ namespace irc
 	class Server
 	{
 	public:
-		static std::size_t const MAX_CLIENTS, MAX_CHANNELS;
+		static std::map<std::string, Channel, utils::t_istringcomp> channels;
 
-		static Server &getInstance(std::string const &numericserv = "6667", std::string const &password = "");
-		static void produce(Client const &client, Message const &message);
-		static void produce(Client const &client, std::string const &command, std::string const &comment);
+		static Server &getInstance(std::string const &numericserv = SRV_SERVERPORT, std::string const &password = SRV_SERVERPASS);
 
 		virtual ~Server(void) throw();
 
 		in_port_t const &getPort(void) const throw();
 		std::map<int, Client> const &getClients(void) const throw();
 
-		std::map<std::string, Channel> &getChannels(void) throw();
-		void challengeRegistration(Client const &client);
-		void removeClient(Client const &client, std::string const &comment);
+		void flush(void);
+		void produce(Client const &client, Message const &message);
+		void produce(std::string const &command, Client const &client, std::string const &comment);
+		void support(Client const &client);
+		void challengeRegistration(Client &client);
+		void removeClient(Client &client, std::string const &comment);
 		void poll(void);
 
 	private:
-		static std::size_t const PASS_MAX_LEN, MAX_EVENTS;
-
-		static epoll_event events[];
-		static char buffer[];
 		static int epollfd, sockfd;
+		static epoll_event *events;
+		static char *buffer;
 
 		static int initPort(std::string const &numericserv);
 
+		time_t const start;
 		in_port_t const port;
 		std::string const password;
 
 		std::map<int, Client> clients;
-		std::map<int, std::string> buffers;
 		std::map<int, bool> overflows;
-		std::map<std::string, Channel> channels;
+		std::map<int, std::string> inputs;
+		std::map<int, std::queue<Message> > outputs;
 
 		Server(std::string const &numericserv, std::string const &password);
 
@@ -92,9 +89,11 @@ namespace irc
 		Server(Server const &);			   /* = delete (C++11) */
 		Server &operator=(Server const &); /* = delete (C++11) */
 
+		void write(Client const &client);
 		void addClient(void);
 		void extractMessage(Client &client, std::size_t const &crlfpos);
 		bool consumeBuffer(Client &client);
+		void read(Client &client);
 	};
 } // namespace irc
 

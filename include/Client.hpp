@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/02 16:42:47 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/09 15:34:58 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,30 +14,25 @@
 #define __CLIENT_HPP__
 
 #include <iomanip>
+#include <locale>
 #include <queue>
 #include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
+#include "Channel.hpp"
+#include "Config.hpp"
 #include "Message.hpp"
 #include "utils.hpp"
 
-#define USR_NICK_LEN ((std::size_t)9)
-#define USR_CHAN_LIMIT ((std::size_t)10)
-
-#define USR_MODE_I 'i'
-#define USR_MODE_W 'w'
-#define USR_MODE_O 'o'
-
 namespace irc
 {
+	class Channel;
+
 	class Client
 	{
 	public:
-		static std::size_t const NICK_MAX_LEN, MAX_CHANNELS;
-		static std::set<char> const USER_MODES;
-
 		Client(int const &connfd, std::string const &hostaddr);
 		Client(Client const &src);
 
@@ -45,6 +40,10 @@ namespace irc
 
 		bool operator==(Client const &rhs) const;
 		bool operator!=(Client const &rhs) const;
+		bool operator<(Client const &rhs) const;
+		bool operator>(Client const &rhs) const;
+		bool operator<=(Client const &rhs) const;
+		bool operator>=(Client const &rhs) const;
 
 		int const &getSocket(void) const throw();
 		std::string const &getHostaddr(void) const throw();
@@ -55,6 +54,7 @@ namespace irc
 		std::string const &getUsername(void) const throw();
 		std::string const &getRealname(void) const throw();
 		std::set<char> const &getModes(void) const throw();
+		std::set<std::string, utils::t_istringcomp> const &getChannels(void) const throw();
 
 		std::string userId(void) const;
 		std::string str(void) const;
@@ -67,6 +67,8 @@ namespace irc
 		void setRealname(std::string const &realname);
 		void addMode(char const &mode);
 		void removeMode(char const &mode);
+		void joinChannel(Channel const &channel);
+		void leaveChannel(Channel const &channel);
 
 	private:
 		static int unique;
@@ -80,7 +82,7 @@ namespace irc
 		std::queue<Message> messages;
 		std::string password, nickname, username, realname;
 		std::set<char> modes;
-		std::set<std::string> channels;
+		std::set<std::string, utils::t_istringcomp> channels;
 
 		Client(void);					   /* = delete (C++11) */
 		Client &operator=(Client const &); /* = delete (C++11) */
