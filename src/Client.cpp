@@ -6,25 +6,31 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/09 15:37:58 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:04:33 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-int irc::Client::unique = 0;
+std::string const irc::Client::SPECIAL_CHARS("[]\\`_^{|}");
 
-bool irc::Client::isNotInNicknameFormat(char const &c)
+int irc::Client::unique(0);
+
+bool irc::Client::channel_ptr_less(Channel const *const &lhs,
+								   Channel const *const &rhs)
 {
-	static std::string const special = "[]\\`_^{|}";
-
-	return (c != '-' && special.find(c) == std::string::npos && !std::isalnum(c, std::locale::classic()));
+	return (utils::i_string_less(lhs->getName(), rhs->getName()));
 }
 
-irc::Client::Client(int const &connfd, std::string const &hostaddr)
+bool irc::Client::is_not_nick(char const &c)
+{
+	return (c != '-' && SPECIAL_CHARS.find(c) == std::string::npos &&
+			!utils::is_alnum(c));
+}
+
+irc::Client::Client(utils::t_sockinfo const &sockinfo)
 	: uid(++Client::unique),
-	  connfd(connfd),
-	  hostaddr(hostaddr),
+	  sockinfo(sockinfo),
 	  registered(false),
 	  messages(),
 	  password(),
@@ -32,17 +38,17 @@ irc::Client::Client(int const &connfd, std::string const &hostaddr)
 	  username(),
 	  realname(),
 	  modes(),
-	  channels(&utils::istringcomp)
+	  channels(&Client::channel_ptr_less),
+	  invites(&Client::channel_ptr_less)
 {
-	this->nickname.reserve(Config::getInstance().getSize(PRP_NICKLEN));
+	this->nickname.reserve(Server::instance().getSizeProperty(PRP_NICKLEN));
 
 	return;
 }
 
 irc::Client::Client(Client const &src)
 	: uid(src.uid),
-	  connfd(src.connfd),
-	  hostaddr(src.hostaddr),
+	  sockinfo(src.sockinfo),
 	  registered(src.registered),
 	  messages(src.messages),
 	  password(src.password),
@@ -50,73 +56,88 @@ irc::Client::Client(Client const &src)
 	  username(src.username),
 	  realname(src.realname),
 	  modes(src.modes),
-	  channels(src.channels) { return; }
+	  channels(src.channels),
+	  invites(src.invites) { return; }
 
 irc::Client::~Client(void) throw() { return; }
 
-bool irc::Client::operator==(Client const &rhs) const { return (this->connfd == rhs.connfd); }
+irc::utils::t_sockinfo const &irc::Client::getSocket(
+	void) const throw() { return (this->sockinfo); }
 
-bool irc::Client::operator!=(Client const &rhs) const { return (!(*this == rhs)); }
+bool const &irc::Client::isRegistered(
+	void) const throw() { return (this->registered); }
 
-bool irc::Client::operator<(Client const &rhs) const { return (this->connfd < rhs.connfd); }
+std::queue<irc::Message> const &irc::Client::getMessages(
+	void) const throw() { return (this->messages); }
 
-bool irc::Client::operator>(Client const &rhs) const { return (rhs < *this); }
+std::string const &irc::Client::getPassword(
+	void) const throw() { return (this->password); }
 
-bool irc::Client::operator<=(Client const &rhs) const { return (!(*this > rhs)); }
+std::string const &irc::Client::getNickname(
+	void) const throw() { return (this->nickname); }
 
-bool irc::Client::operator>=(Client const &rhs) const { return (!(*this < rhs)); }
+std::string const &irc::Client::getUsername(
+	void) const throw() { return (this->username); }
 
-int const &irc::Client::getSocket(void) const throw() { return (this->connfd); }
+std::string const &irc::Client::getRealname(
+	void) const throw() { return (this->realname); }
 
-std::string const &irc::Client::getHostaddr(void) const throw() { return (this->hostaddr); }
+std::set<char> const &irc::Client::getModes(
+	void) const throw() { return (this->modes); }
 
-bool const &irc::Client::isRegistered(void) const throw() { return (this->registered); }
+irc::Client::t_channels const &irc::Client::getChannels(
+	void) const throw() { return (this->channels); }
 
-std::queue<irc::Message> const &irc::Client::getMessages(void) const throw() { return (this->messages); }
-
-std::string const &irc::Client::getPassword(void) const throw() { return (this->password); }
-
-std::string const &irc::Client::getNickname(void) const throw() { return (this->nickname); }
-
-std::string const &irc::Client::getUsername(void) const throw() { return (this->username); }
-
-std::string const &irc::Client::getRealname(void) const throw() { return (this->realname); }
-
-std::set<char> const &irc::Client::getModes(void) const throw() { return (this->modes); }
-
-std::set<std::string, irc::utils::t_istringcomp> const &irc::Client::getChannels(void) const throw() { return (this->channels); }
+irc::Client::t_channels const &irc::Client::getInvites(
+	void) const throw() { return (this->invites); }
 
 std::string irc::Client::userId(void) const
 {
-	std::stringstream o;
+	std::ostringstream out;
 
 	if (this->username.empty())
-		o << "UID" << std::setfill('0') << std::setw(7) << this->uid;
+		out << "UID" << std::setfill('0') << std::setw(7) << this->uid;
 	else
-		o << this->username;
+		out << this->username;
 
-	o << '@' << this->hostaddr;
+	out << '@' << utils::get_haddr(this->sockinfo);
 
-	return (o.str());
+	return (out.str());
 }
 
 std::string irc::Client::str(void) const
 {
-	std::stringstream o;
+	std::ostringstream out;
 
 	if (!this->nickname.empty())
-		o << this->nickname << '!';
+		out << this->nickname << '!';
 
-	o << this->userId();
+	out << this->userId();
 
-	return (o.str());
+	return (out.str());
+}
+
+void irc::Client::publish(Message const &message) const
+{
+	Server::t_clients::const_iterator cit(
+		Server::instance().getClients().begin());
+
+	for (; cit != Server::instance().getClients().end(); ++cit)
+	{
+		if (&cit->second == this)
+			continue;
+		else if (std::find_first_of(this->channels.begin(),
+									this->channels.end(),
+									cit->second.getChannels().begin(),
+									cit->second.getChannels().end()) !=
+				 this->channels.end())
+			Server::instance().produce(cit->second, message);
+	}
 }
 
 void irc::Client::produce(Message const &message)
 {
-	this->messages.push(message);
-
-	return;
+	return (this->messages.push(message));
 }
 
 irc::Message irc::Client::consume(void)
@@ -129,33 +150,42 @@ irc::Message irc::Client::consume(void)
 }
 
 void irc::Client::setPassword(std::string const &password)
-try
 {
 	if (this->registered)
-		throw std::runtime_error("std::runtime_error: client must not set password once registered");
+		throw std::runtime_error(
+			"client must not set password once registered");
 	else if (password.find_first_of("\0\r\n", 0, 3) != std::string::npos)
-		throw std::domain_error("std::domain_error: password must have any character except: NUL, CR, LF");
+		throw std::domain_error(
+			"client password must have any character except: NUL, CR, LF");
 
 	this->password = password;
 
 	return;
 }
-catch (std::exception const &e)
-{
-	throw std::runtime_error("irc::Client::setPassword: " + std::string(e.what()));
-}
 
 void irc::Client::setNickname(std::string const &nickname)
-try
 {
-	if (nickname.at(0) == '-')
-		throw std::invalid_argument("std::invalid_argument: nickname must not begin with a hyphen character");
-	else if (std::isdigit(nickname.at(0), std::locale::classic()))
-		throw std::invalid_argument("std::invalid_argument: nickname must not begin with a digit character");
-	else if (nickname.length() > Config::getInstance().getSize(PRP_NICKLEN))
-		throw std::length_error("std::length_error: " + utils::to_string(nickname.length()) + ": nickname must not have more than " + utils::to_string(Config::getInstance().getSize(PRP_NICKLEN)) + " characters");
-	else if (std::find_if(nickname.begin(), nickname.end(), Client::isNotInNicknameFormat) != nickname.end())
-		throw std::domain_error("std::domain_error: nickname must have only alphanumeric and special characters: []\\`_^{|}");
+	if (nickname.empty())
+		throw std::length_error("client nickname must not be empty");
+	else if (nickname.at(0) == '-')
+		throw std::invalid_argument(
+			"client nickname must not begin with a hyphen character");
+	else if (utils::is_digit(nickname.at(0)))
+		throw std::invalid_argument(
+			"client nickname must not begin with a digit character");
+	else if (nickname.length() >
+			 Server::instance().getSizeProperty(PRP_NICKLEN))
+		throw std::length_error(
+			"client nickname length: " + utils::to_string(nickname.length()) +
+			": nickname must not have more than " +
+			utils::to_string(Server::instance().getSizeProperty(PRP_NICKLEN)) +
+			" characters");
+	else if (std::find_if(nickname.begin(),
+						  nickname.end(),
+						  Client::is_not_nick) != nickname.end())
+		throw std::domain_error("client nickname must have only hyphen"
+								", alphanumeric and special characters: " +
+								SPECIAL_CHARS);
 
 	this->nickname = nickname;
 
@@ -164,54 +194,54 @@ try
 
 	return;
 }
-catch (std::exception const &e)
+
+void irc::Client::clearNickname(void)
 {
-	throw std::runtime_error("irc::Client::setNickname: " + std::string(e.what()));
+	this->nickname = "*";
+
+	return;
 }
 
 void irc::Client::setUsername(std::string const &username)
-try
 {
 	if (this->registered)
-		throw std::runtime_error("std::runtime_error: client must not set username once registered");
+		throw std::runtime_error(
+			"client must not set username once registered");
 	else if (username.empty())
-		throw std::length_error("std::length_error: username must not be empty");
-	else if (username.at(0) == ':' || username.at(0) == '$' || Config::getInstance().getText(PRP_CHANTYPES).find(username.at(0)) != std::string::npos)
-		throw std::domain_error("std::domain_error: " + std::string(1, username.at(0)) + ":username must begin with any character except: COLON, $, " + Config::getInstance().getText(PRP_CHANTYPES));
-	else if (username.find_first_of("\0\r\n ,*?!@", 0, 9) != std::string::npos)
-		throw std::domain_error("std::domain_error: username must have any character except: NUL, CR, LF, SPACE, COMMA, *, ?, !, @");
+		throw std::length_error("client username must not be empty");
 
-	this->username = username;
+	this->username = username.substr(
+		0,
+		Server::instance().getSizeProperty(PRP_USERLEN));
 	this->registered = this->nickname.compare("*");
 
 	return;
 }
-catch (std::exception const &e)
-{
-	throw std::runtime_error("irc::Client::setUsername: " + std::string(e.what()));
-}
 
 void irc::Client::setRealname(std::string const &realname)
-try
 {
 	if (this->registered)
-		throw std::runtime_error("std::runtime_error: client must not set realname once registered");
+		throw std::runtime_error(
+			"client must not set realname once registered");
+	else if (realname.empty())
+		throw std::length_error("client realname must not be empty");
 	else if (realname.find_first_of("\0\r\n", 0, 3) != std::string::npos)
-		throw std::domain_error("std::domain_error: realname must have any character except: NUL, CR, LF");
+		throw std::domain_error(
+			"client realname must have any character except: NUL, CR, LF");
 
 	this->realname = realname;
 
 	return;
 }
-catch (std::exception const &e)
-{
-	throw std::runtime_error("irc::Client::setRealname: " + std::string(e.what()));
-}
 
 void irc::Client::addMode(char const &mode)
 {
-	if (Config::getInstance().getText(PRP_USERMODESINFO).find(mode) == std::string::npos)
-		throw std::domain_error("irc::Client::addMode: std::domain_error: " + std::string(1, mode) + ": mode must be any supported user mode: " + Config::getInstance().getText(PRP_USERMODESINFO));
+	if (Server::instance().getTextProperty(PRP_USERMODESINFO).find(mode) ==
+		std::string::npos)
+		throw std::domain_error(
+			std::string(1, mode) +
+			": client mode must be any supported user mode: " +
+			Server::instance().getTextProperty(PRP_USERMODESINFO));
 
 	this->modes.insert(mode);
 
@@ -220,8 +250,12 @@ void irc::Client::addMode(char const &mode)
 
 void irc::Client::removeMode(char const &mode)
 {
-	if (Config::getInstance().getText(PRP_USERMODESINFO).find(mode) == std::string::npos)
-		throw std::domain_error("irc::Client::addMode: std::domain_error: " + std::string(1, mode) + ": mode must any supported user mode: " + Config::getInstance().getText(PRP_USERMODESINFO));
+	if (Server::instance().getTextProperty(PRP_USERMODESINFO).find(mode) ==
+		std::string::npos)
+		throw std::domain_error(
+			std::string(1, mode) +
+			": client mode must any supported user mode: " +
+			Server::instance().getTextProperty(PRP_USERMODESINFO));
 
 	this->modes.erase(mode);
 
@@ -229,40 +263,49 @@ void irc::Client::removeMode(char const &mode)
 }
 
 void irc::Client::joinChannel(Channel const &channel)
-try
 {
 	if (!this->registered)
-		throw std::runtime_error("std::runtime_error: client must be registered to perform this action");
-	else if (this->channels.size() == Config::getInstance().getSize(PRP_CHANLIMIT))
-		throw std::length_error("std::length_error: a client must not be a member of more than " + utils::to_string(Config::getInstance().getSize(PRP_CHANLIMIT)) + " channels");
+		throw std::runtime_error(
+			"client must be registered to join a channel");
+	else if (this->channels.size() ==
+			 Server::instance().getSizeProperty(PRP_CHANLIMIT))
+		throw std::length_error(
+			"client must not be a member of more than " +
+			utils::to_string(
+				Server::instance().getSizeProperty(PRP_CHANLIMIT)) +
+			" channels");
 
-	this->channels.insert(channel.getName());
+	this->channels.insert(&channel);
+	this->invites.erase(&channel);
 
 	return;
-}
-catch (std::exception const &e)
-{
-	throw std::runtime_error("irc::Client::joinChannel: " + std::string(e.what()));
 }
 
 void irc::Client::leaveChannel(Channel const &channel)
-try
 {
-	std::set<std::string, utils::t_istringcomp>::const_iterator cit;
+	t_channels::const_iterator cit;
 
 	if (!this->registered)
-		throw std::runtime_error("std::runtime_error: client must be registered to perform this action");
+		throw std::runtime_error(
+			"client must be registered to leave a channel");
 
-	cit = this->channels.find(channel.getName());
+	cit = this->channels.find(&channel);
 
 	if (cit == this->channels.end())
-		throw std::out_of_range("std::out_of_range: " + channel.getName() + ": client must be a channel member to perform this action");
+		throw std::out_of_range(
+			channel.getName() +
+			": client must be a channel member to perform this action");
 
-	this->channels.erase(cit);
+	return (this->channels.erase(cit));
+}
+
+void irc::Client::addInvite(Channel const &channel)
+{
+	if (!this->registered)
+		throw std::runtime_error(
+			"client must be registered to be invited to a channel");
+
+	this->invites.insert(&channel);
 
 	return;
-}
-catch (std::exception const &e)
-{
-	throw std::runtime_error("irc::Client::leaveChannel: " + std::string(e.what()));
 }
