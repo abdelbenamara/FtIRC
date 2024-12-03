@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/09 14:01:21 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/02 20:47:07 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "Config.hpp"
+#include "Server.hpp"
 #include "utils.hpp"
 
 namespace irc
@@ -36,16 +36,22 @@ namespace irc
 
             virtual ~Builder(void) throw();
 
+            std::string const &getPrefix(void) const throw();
+            std::string const &getCommand(void) const throw();
+            std::vector<std::string> const &getParameters(void) const throw();
+
+            Builder &withoutPrefix(void);
             Builder &withPrefix(std::string const &prefix);
             Builder &withCommand(std::string const &command);
+            Builder &withoutParameters(void);
             Builder &addParameter(std::string const &parameter);
+            Builder &addParameter(char const &parameter);
+            Builder &withParameter(std::string const &parameter);
             Builder &withParameters(std::vector<std::string> const &parameters);
 
             Message build(void);
 
         private:
-            static bool isNotInCommandFormat(char const &c);
-
             bool trailing;
             std::string prefix, command;
             std::vector<std::string> parameters;
@@ -55,7 +61,7 @@ namespace irc
         };
 
         static std::string const CRLF;
-        static std::size_t const NUM_RPL_LEN, MAX_PARAMS;
+        static std::size_t const NUM_RPL_LEN, PARAMETERS_SIZE;
 
         static Message from(std::string const &input);
 
@@ -73,7 +79,9 @@ namespace irc
         std::string const prefix, command;
         std::vector<std::string> const parameters;
 
-        Message(std::string const &prefix, std::string const &command, std::vector<std::string> const &parameters);
+        Message(std::string const &prefix,
+                std::string const &command,
+                std::vector<std::string> const &parameters);
 
         Message(void);                       /* = delete (C++11) */
         Message &operator=(Message const &); /* = delete (C++11) */

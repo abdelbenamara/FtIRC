@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/09 15:34:58 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/02 20:17:30 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #define __CLIENT_HPP__
 
 #include <iomanip>
-#include <locale>
 #include <queue>
 #include <set>
 #include <sstream>
@@ -22,31 +21,32 @@
 #include <string>
 
 #include "Channel.hpp"
-#include "Config.hpp"
 #include "Message.hpp"
+#include "Server.hpp"
 #include "utils.hpp"
+
+#define USR_MODE_i 'i'
+#define USR_MODE_o 'o'
+#define USR_MODE_w 'w'
 
 namespace irc
 {
 	class Channel;
+	class Message;
 
 	class Client
 	{
 	public:
-		Client(int const &connfd, std::string const &hostaddr);
+		typedef bool (*t_channel_ptr_comp)(Channel const *const &,
+										   Channel const *const &);
+		typedef std::set<Channel const *, t_channel_ptr_comp> t_channels;
+
+		Client(utils::t_sockinfo const &sockinfo);
 		Client(Client const &src);
 
 		virtual ~Client(void) throw();
 
-		bool operator==(Client const &rhs) const;
-		bool operator!=(Client const &rhs) const;
-		bool operator<(Client const &rhs) const;
-		bool operator>(Client const &rhs) const;
-		bool operator<=(Client const &rhs) const;
-		bool operator>=(Client const &rhs) const;
-
-		int const &getSocket(void) const throw();
-		std::string const &getHostaddr(void) const throw();
+		utils::t_sockinfo const &getSocket(void) const throw();
 		bool const &isRegistered(void) const throw();
 		std::queue<Message> const &getMessages(void) const throw();
 		std::string const &getPassword(void) const throw();
@@ -54,35 +54,44 @@ namespace irc
 		std::string const &getUsername(void) const throw();
 		std::string const &getRealname(void) const throw();
 		std::set<char> const &getModes(void) const throw();
-		std::set<std::string, utils::t_istringcomp> const &getChannels(void) const throw();
+		t_channels const &getChannels(void) const throw();
+		t_channels const &getInvites(void) const throw();
 
 		std::string userId(void) const;
 		std::string str(void) const;
+		void publish(Message const &message) const;
 
 		void produce(Message const &message);
 		Message consume(void);
 		void setPassword(std::string const &password);
 		void setNickname(std::string const &nickname);
+		void clearNickname(void);
 		void setUsername(std::string const &username);
 		void setRealname(std::string const &realname);
 		void addMode(char const &mode);
 		void removeMode(char const &mode);
 		void joinChannel(Channel const &channel);
 		void leaveChannel(Channel const &channel);
+		void addInvite(Channel const &channel);
 
 	private:
+		static std::string const SPECIAL_CHARS;
+
 		static int unique;
 
-		static bool isNotInNicknameFormat(char const &c);
+		static bool channel_ptr_less(Channel const *const &lhs,
+									 Channel const *const &rhs);
+		static bool is_not_nick(char const &c);
 
-		int const uid, connfd;
-		std::string const hostaddr;
+		int const uid;
+		utils::t_sockinfo sockinfo;
 
 		bool registered;
 		std::queue<Message> messages;
 		std::string password, nickname, username, realname;
 		std::set<char> modes;
-		std::set<std::string, utils::t_istringcomp> channels;
+		t_channels channels;
+		t_channels invites;
 
 		Client(void);					   /* = delete (C++11) */
 		Client &operator=(Client const &); /* = delete (C++11) */

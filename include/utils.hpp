@@ -6,46 +6,77 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 16:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/09 15:32:57 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/27 15:39:45 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef __UTILS_HPP__
 #define __UTILS_HPP__
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
+#include <iterator>
 #include <locale>
 #include <map>
-#include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace irc
 {
     namespace utils
     {
-        class RuntimeErrno : public std::runtime_error
-        {
-        public:
-            explicit RuntimeErrno(std::string const &source);
-        };
+        typedef std::pair<int, sockaddr_storage> t_sockinfo;
+        typedef bool (*t_string_comp)(std::string const &lhs,
+                                      std::string const &rhs);
 
-        typedef bool (*t_istringcomp)(std::string const &, std::string const &);
+        std::vector<std::string> split(
+            std::string const &str,
+            char const &delim,
+            std::size_t const &len = std::string::npos);
 
-        bool icharcomp(char const &lhs, char const &rhs);
-        bool istringcomp(std::string const &lhs, std::string const &rhs);
+        std::string &trim(std::string &str, std::string const &buf);
+
+        std::string strerrno(std::string const &source);
+
+        char is_alnum(char const &c);
+        char is_digit(char const &c);
+        char to_upper(char const &c);
+
+        bool i_char_less(char const &lhs, char const &rhs);
+        bool i_string_less(std::string const &lhs, std::string const &rhs);
+
+        std::string get_haddr(t_sockinfo const &si);
+        in_port_t get_hport(t_sockinfo const &si);
 
         template <typename T>
         std::string to_string(T const &value);
 
         template <typename T>
-        std::string sequence_to_string(T const &sequence, std::string const &delimiter);
+        std::string to_string(T first, T last, char const *delim);
+
+        template <typename T>
+        std::string to_string(T const &seq, char const *delim);
+
+        template <typename T>
+        struct s_istringmap
+        {
+            typedef std::map<std::string, T, t_string_comp> type;
+        };
 
         template <typename T, typename U>
-        std::map<std::string, T, t_istringcomp> arrays_to_imap(char const *const *keys, U const *values, std::size_t const &len);
+        typename s_istringmap<T>::type to_istringmap(
+            char const *const *const keys,
+            U const *const values,
+            std::size_t const &len);
     } // namespace utils
 } // namespace irc
 

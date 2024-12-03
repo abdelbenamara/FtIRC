@@ -6,39 +6,58 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/30 12:00:20 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/09 15:33:08 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/11/23 00:53:29 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef __UTILS_TPP__
+#define __UTILS_TPP__
 
 #include "utils.hpp"
 
 template <typename T>
-std::string irc::utils::to_string(T const &value) { return (reinterpret_cast<std::stringbuf *>((std::ostringstream() << value).rdbuf())->str()); }
+std::string irc::utils::to_string(T const &value)
+{
+    std::ostringstream out;
+
+    return (reinterpret_cast<std::stringbuf *>((out << value).rdbuf())->str());
+}
 
 template <typename T>
-std::string irc::utils::sequence_to_string(T const &sequence, std::string const &delimiter)
+std::string irc::utils::to_string(T first, T last, char const *delim)
 {
-    typename T::const_iterator cit = sequence.begin();
-    std::ostringstream o;
+    std::ostringstream out;
 
-    if (!sequence.empty())
-    {
-        o << *cit++;
+    if (first == last)
+        return (std::string());
 
-        for (; cit != sequence.end(); ++cit)
-            o << delimiter << *cit;
-    }
+    std::copy(first,
+              --last,
+              std::ostream_iterator<typename T::value_type>(out, delim));
 
-    return (o.str());
+    out << *last;
+
+    return (out.str());
+}
+
+template <typename T>
+std::string irc::utils::to_string(T const &seq, char const *delim)
+{
+    return (utils::to_string(seq.begin(), seq.end(), delim));
 }
 
 template <typename T, typename U>
-std::map<std::string, T, irc::utils::t_istringcomp> irc::utils::arrays_to_imap(char const *const *keys, U const *values, std::size_t const &len)
+typename irc::utils::s_istringmap<T>::type irc::utils::to_istringmap(
+    char const *const *const keys,
+    U const *const values,
+    std::size_t const &len)
 {
-    std::map<std::string, T, t_istringcomp> map(&utils::istringcomp);
+    typename s_istringmap<T>::type map(&utils::i_string_less);
 
     for (std::size_t i = 0; i < len; ++i)
         map.insert(std::make_pair(keys[i], values[i]));
 
     return (map);
 }
+
+#endif
