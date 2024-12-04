@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 11:27:49 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 03:31:46 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,15 +83,15 @@ irc::Server::~Server(void) throw()
 	{
 		try
 		{
-			this->removeClient((rit++)->second, "Server shutting down");
+			this->removeClient(rit->second, "Server shutting down");
 		}
 		catch (std::exception const &e)
 		{
-			std::cerr << "Error: " << (--rit)->second.str()
+			std::cerr << "Error: " << rit->second.str()
 					  << ": " << e.what() << std::endl;
 
 			::close(rit->first);
-			this->clients.erase((rit++)->first);
+			this->clients.erase(rit->first);
 		}
 	}
 
@@ -115,7 +115,8 @@ irc::Server::t_clients::iterator irc::Server::getClient(
 	Server::t_clients::iterator it;
 
 	for (it = this->clients.begin(); it != this->clients.end(); ++it)
-		if (it->second.getNickname() == nick)
+		if (!utils::i_string_less(it->second.getNickname(), nick) &&
+			!utils::i_string_less(nick, it->second.getNickname()))
 			break;
 
 	return (it);
@@ -256,7 +257,7 @@ void irc::Server::challengeRegistration(Client &client)
 	if (!client.getModes().empty())
 		Command::apply(builder
 						   .withCommand(CMD_MODE)
-						   .withoutParameters()
+						   .withParameter(client.getNickname())
 						   .build(),
 					   client);
 

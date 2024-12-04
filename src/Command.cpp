@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 19:34:06 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 02:20:12 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             CMD_INVITE,
             CMD_KICK,
             CMD_MODE,
+            CMD_PRIVMSG,
+            CMD_NOTICE,
             CMD_SUMMON,
             CMD_USERS},
         (irc::Command::t_cmd[]){
@@ -114,9 +116,11 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             &irc::Command::invite,
             &irc::Command::kick,
             &irc::Command::mode,
+            &irc::Command::privmsg,
+            &irc::Command::notice,
             &::summon,
             &::users},
-        16));
+        18));
 
 irc::Command::~Command(void) throw() { return; }
 

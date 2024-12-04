@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:56:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 20:48:03 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 00:57:48 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,15 +92,6 @@ irc::Message::Builder &irc::Message::Builder::withCommand(
     return (*this);
 }
 
-irc::Message::Builder &irc::Message::Builder::withoutParameters(void)
-{
-    this->parameters.clear();
-
-    this->trailing = false;
-
-    return (*this);
-}
-
 irc::Message::Builder &irc::Message::Builder::addParameter(
     std::string const &parameter)
 {
@@ -130,14 +121,6 @@ irc::Message::Builder &irc::Message::Builder::addParameter(
     return (this->addParameter(std::string(1, parameter)));
 }
 
-irc::Message::Builder &irc::Message::Builder::withParameter(
-    std::string const &parameter)
-{
-    this->withoutParameters();
-
-    return (this->addParameter(parameter));
-}
-
 irc::Message::Builder &irc::Message::Builder::withParameters(
     std::vector<std::string> const &parameters)
 {
@@ -149,12 +132,20 @@ irc::Message::Builder &irc::Message::Builder::withParameters(
             ": a message must not have more than " +
             utils::to_string(Message::PARAMETERS_SIZE) + " parameters");
 
-    this->withoutParameters();
+    this->parameters.clear();
+
+    this->trailing = false;
 
     for (cit = parameters.begin(); cit != parameters.end(); ++cit)
         this->addParameter(*cit);
 
     return (*this);
+}
+
+irc::Message::Builder &irc::Message::Builder::withParameter(
+    std::string const &parameter)
+{
+    return (this->withParameters(std::vector<std::string>(1, parameter)));
 }
 
 irc::Message irc::Message::Builder::build(void)

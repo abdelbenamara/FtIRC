@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/27 17:04:33 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 02:42:35 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,19 @@ irc::Client::Client(utils::t_sockinfo const &sockinfo)
 irc::Client::Client(Client const &src)
 	: uid(src.uid),
 	  sockinfo(src.sockinfo),
+	  registered(src.registered),
+	  messages(src.messages),
+	  password(src.password),
+	  nickname(src.nickname),
+	  username(src.username),
+	  realname(src.realname),
+	  modes(src.modes),
+	  channels(src.channels),
+	  invites(src.invites) { return; }
+
+irc::Client::Client(void const *const, Client const &src)
+	: uid(src.uid),
+	  sockinfo(-1, src.sockinfo.second),
 	  registered(src.registered),
 	  messages(src.messages),
 	  password(src.password),

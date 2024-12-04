@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 22:30:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 21:46:22 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 01:08:35 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,12 +117,14 @@ std::string irc::Channel::namesList(Client const &target) const
     return (out.str());
 }
 
-void irc::Channel::publish(Message const &message) const
+void irc::Channel::publish(Message const &message,
+                           Client const *const sender) const
 {
     Channel::t_clients::const_iterator cit;
 
     for (cit = this->members.begin(); cit != this->members.end(); ++cit)
-        Server::instance().produce(**cit, message);
+        if (*cit != sender)
+            Server::instance().produce(**cit, message);
 
     return;
 }
