@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 03:31:46 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 17:30:01 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -524,7 +524,7 @@ void irc::Server::read(Client &client)
 		}
 		catch (std::exception const &e)
 		{
-			std::cerr << "Error: " << client.str()
+			std::cerr << "Error: " << connfd << ", " << client.str()
 					  << ": " << e.what() << std::endl;
 		}
 	}

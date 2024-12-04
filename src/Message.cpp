@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:20:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/01 20:57:44 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 17:47:54 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,9 @@ irc::Message irc::Message::from(std::string const &input)
     for (cit = tokens.begin(); cit != tokens.end(); ++cit)
         if (!cit->empty())
             builder.addParameter(*cit);
+
+    if (tokens.back().empty() && pos != std::string::npos)
+        builder.addParameter(tokens.back());
 
     return (builder.build());
 }
