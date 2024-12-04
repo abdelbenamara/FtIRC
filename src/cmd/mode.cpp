@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:21:27 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/03 00:21:57 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 02:56:32 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,13 @@
 static std::string user_mode(std::string const &modestring,
                              irc::Client &client)
 {
-    std::size_t cur(0),
-        cap(irc::Server::instance().getSizeProperty(PRP_MODES)),
+    std::size_t cap(irc::Server::instance().getSizeProperty(PRP_MODES)),
+        cur(0),
         pos;
     bool add(true);
     std::string applied;
 
-    for (; cur < modestring.length() && cap > 0;)
+    for (; cap > 0 && cur < modestring.length();)
     {
         if (modestring.at(cur) == '+')
             add = true;
@@ -98,20 +98,21 @@ static std::vector<std::string> channel_mode(
     irc::Channel &channel,
     irc::Client &client)
 {
+    std::vector<std::string> changes;
     irc::Message::Builder builder;
-    std::size_t cur(0),
-        cap(irc::Server::instance().getSizeProperty(PRP_MODES)),
+    std::size_t cap(irc::Server::instance().getSizeProperty(PRP_MODES)),
+        cur(0),
         idx(1),
         pos;
     bool chanop(channel.getOperators().find(&client) !=
                 channel.getOperators().end()),
         add(true);
-    std::vector<std::string> changes;
     irc::Server::t_clients::iterator userit;
 
+    changes.resize(1);
     builder.withCommand(ERR_INVALIDMODEPARAM);
 
-    for (; cur < params.at(1).length() && cap > 0;)
+    for (; cap > 0 && cur < params.at(1).length();)
     {
         if (params.at(1).at(cur) == '+')
             add = true;
@@ -232,6 +233,8 @@ static std::vector<std::string> channel_mode(
                     break;
                 }
 
+                changes.push_back(params.at(idx));
+
                 /* FALLTHROUGH */
 
             case CHAN_MODE_i:
@@ -287,9 +290,9 @@ static std::vector<std::string> channel_mode(
 
 void irc::Command::mode(Message const &message, Client &client)
 {
-    Server::t_channels::iterator chanit;
-    Server::t_clients::iterator userit;
     Message::Builder builder;
+    Server::t_clients::iterator userit;
+    Server::t_channels::iterator chanit;
     std::vector<std::string> params;
 
     if (message.getParameters().empty())
@@ -302,11 +305,10 @@ void irc::Command::mode(Message const &message, Client &client)
     builder
         .withPrefix(client.str())
         .withCommand(message.getCommand());
-    params.resize(1);
 
     if (Server::instance()
             .getTextProperty(PRP_CHANTYPES)
-            .find(message.getParameters().at(0)) == std::string::npos)
+            .find(message.getParameters().at(0).at(0)) == std::string::npos)
     {
         userit = Server::instance().getUser(message.getParameters().at(0));
 
