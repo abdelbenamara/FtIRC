@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/12/03 01:39:06 by abenamar         ###   ########.fr        #
+#    Updated: 2024/12/04 01:57:51 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,6 +42,8 @@ CMDS += topic.cpp
 CMDS += invite.cpp
 CMDS += kick.cpp
 CMDS += mode.cpp
+CMDS += privmsg.cpp
+CMDS += notice.cpp
 
 OBJDIR := obj
 
