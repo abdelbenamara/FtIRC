@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 22:31:01 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 20:17:02 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 01:07:52 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,8 @@ namespace irc
 		std::size_t const &getLimit(void) const throw();
 
 		std::string namesList(Client const &receiver) const;
-		void publish(Message const &message) const;
+		void publish(Message const &message,
+					 Client const *const sender = NULL) const;
 
 		void addMember(Client &client);
 		void removeMember(Client &client);

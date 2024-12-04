@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 20:17:30 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 02:42:25 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ namespace irc
 
 		Client(utils::t_sockinfo const &sockinfo);
 		Client(Client const &src);
+		Client(void const *const, Client const &src);
 
 		virtual ~Client(void) throw();
 
@@ -84,7 +85,7 @@ namespace irc
 		static bool is_not_nick(char const &c);
 
 		int const uid;
-		utils::t_sockinfo sockinfo;
+		utils::t_sockinfo const sockinfo;
 
 		bool registered;
 		std::queue<Message> messages;

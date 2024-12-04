@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/03 01:39:32 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 02:12:35 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,8 @@
 #define ERR_TOOMANYCHANNELS "405"
 #define ERR_TOOMANYTARGETS "407"
 #define ERR_NOORIGIN "409"
+#define ERR_NORECIPIENT "411"
+#define ERR_NOTEXTTOSEND "412"
 #define ERR_INPUTTOOLONG "417"
 #define ERR_UNKNOWNCOMMAND "421"
 #define ERR_NOMOTD "422"
@@ -160,8 +162,8 @@ namespace irc
         static void invite(Message const &message, Client &client);
         static void kick(Message const &message, Client &client);
         static void mode(Message const &message, Client &client);
-        // static void privmsg(Message const &message, Client &client);
-        // static void notice(Message const &message, Client &client);
+        static void privmsg(Message const &message, Client &client);
+        static void notice(Message const &message, Client &client);
         // static void wallops(Message const &message, Client &client);
 
         Command(void);                       /* = delete (C++11) */

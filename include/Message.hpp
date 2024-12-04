@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 15:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/02 20:47:07 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/04 00:57:41 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,11 +43,10 @@ namespace irc
             Builder &withoutPrefix(void);
             Builder &withPrefix(std::string const &prefix);
             Builder &withCommand(std::string const &command);
-            Builder &withoutParameters(void);
             Builder &addParameter(std::string const &parameter);
             Builder &addParameter(char const &parameter);
-            Builder &withParameter(std::string const &parameter);
             Builder &withParameters(std::vector<std::string> const &parameters);
+            Builder &withParameter(std::string const &parameter);
 
             Message build(void);
 
