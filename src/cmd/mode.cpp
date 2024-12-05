@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:21:27 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 02:56:32 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/05 18:11:56 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,8 +161,9 @@ static std::vector<std::string> channel_mode(
                             try
                             {
                                 channel.setKey(params.at(idx));
+                                changes.push_back(params.at(idx));
                             }
-                            catch (std::exception const &)
+                            catch (std::domain_error const &)
                             {
                                 throw;
                             }
@@ -179,7 +180,10 @@ static std::vector<std::string> channel_mode(
                             }
 
                             channel.setKey("");
+                            changes.push_back(params.at(idx));
                         }
+                        else
+                            throw std::logic_error("skip");
 
                         break;
 
@@ -187,6 +191,7 @@ static std::vector<std::string> channel_mode(
                         if (add && std::istringstream(params.at(idx)) >> pos)
                         {
                             channel.setLimit(pos);
+                            changes.push_back(irc::utils::to_string(pos));
                         }
                         else
                             throw std::domain_error(params.at(idx) +
@@ -200,18 +205,37 @@ static std::vector<std::string> channel_mode(
 
                         if (userit ==
                             irc::Server::instance().getClients().end())
+                        {
                             irc::Command::reply(ERR_NOSUCHNICK,
                                                 client,
                                                 params.at(idx));
+
+                            throw std::exception();
+                        }
                         else if (channel.getMembers().find(
                                      &(userit->second)) !=
                                      channel.getMembers().end() &&
                                  channel.getOperators().find(
                                      &(userit->second)) ==
                                      channel.getOperators().end())
+                        {
                             channel.addOperator(userit->second);
+                            changes.push_back(params.at(idx));
+                        }
+                        else if (channel.getMembers().find(
+                                     &(userit->second)) !=
+                                     channel.getMembers().end() &&
+                                 channel.getOperators().find(
+                                     &(userit->second)) !=
+                                     channel.getOperators().end())
+                        {
+                            channel.removeOperator(userit->second);
+                            changes.push_back(params.at(idx));
+                        }
+                        else
+                            throw std::logic_error("skip");
 
-                        throw std::exception();
+                        break;
                     }
                 }
                 catch (std::domain_error const &e)
@@ -228,12 +252,10 @@ static std::vector<std::string> channel_mode(
 
                     break;
                 }
-                catch (std::exception const &)
+                catch (std::logic_error const &)
                 {
                     break;
                 }
-
-                changes.push_back(params.at(idx));
 
                 /* FALLTHROUGH */
 
@@ -241,8 +263,9 @@ static std::vector<std::string> channel_mode(
                 /* FALLTHROUGH */
 
             case CHAN_MODE_t:
-                if (add && channel.getModes().find(params.at(1).at(cur)) ==
-                               channel.getModes().end())
+                if (add && (params.at(1).at(cur) == CHAN_MODE_l ||
+                            channel.getModes().find(params.at(1).at(cur)) ==
+                                channel.getModes().end()))
                 {
                     channel.addMode(params.at(1).at(cur));
 
@@ -255,8 +278,9 @@ static std::vector<std::string> channel_mode(
                     changes.at(0) += params.at(1).at(cur);
                 }
                 else if (!add &&
-                         channel.getModes().find(params.at(1).at(cur)) !=
-                             channel.getModes().end())
+                         (params.at(1).at(cur) == CHAN_MODE_o ||
+                          channel.getModes().find(params.at(1).at(cur)) !=
+                              channel.getModes().end()))
                 {
                     channel.removeMode(params.at(1).at(cur));
 
