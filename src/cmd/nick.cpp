@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:17:58 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/01 21:41:32 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/05 17:01:57 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,10 +61,11 @@ void irc::Command::nick(Message const &message, Client &client)
 
     if (registered)
     {
-        Server::instance().produce(client, builder.build());
-        client.publish(builder
-                           .withParameter(client.getNickname())
-                           .build());
+        Server::instance().produce(client,
+                                   builder
+                                       .withParameter(client.getNickname())
+                                       .build());
+        client.publish(builder.build());
     }
     else if (client.isRegistered())
         Server::instance().challengeRegistration(client);
