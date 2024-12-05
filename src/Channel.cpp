@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 22:30:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 01:08:35 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/05 18:17:19 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,29 +216,23 @@ void irc::Channel::setTopicWhoTime(Client const &client)
 
 void irc::Channel::addMode(char const &mode)
 {
-    if (mode == CHAN_MODE_o)
-        throw std::invalid_argument(
-            "operator mode is meant to be set on a member of the channel"
-            ", not on the channel");
-    else if (Server::instance().getTextProperty(PRP_CHANMODESINFO).find(mode) ==
-             std::string::npos)
+    if (Server::instance().getTextProperty(PRP_CHANMODESINFO).find(mode) ==
+        std::string::npos)
         throw std::domain_error(
             std::string(1, mode) +
             ": mode must be any supported channel mode: " +
             Server::instance().getTextProperty(PRP_CHANMODESINFO));
 
-    this->modes.insert(mode);
+    if (mode != CHAN_MODE_o)
+        this->modes.insert(mode);
 
     return;
 }
 
 void irc::Channel::removeMode(char const &mode)
 {
-    if (mode == CHAN_MODE_o)
-        throw std::invalid_argument(
-            "operator mode is never set on the channel itself");
-    else if (Server::instance().getTextProperty(PRP_CHANMODESINFO).find(mode) ==
-             std::string::npos)
+    if (Server::instance().getTextProperty(PRP_CHANMODESINFO).find(mode) ==
+        std::string::npos)
         throw std::domain_error(
             std::string(1, mode) +
             ": mode must any supported channel mode: " +
@@ -251,10 +245,6 @@ void irc::Channel::removeMode(char const &mode)
 
 void irc::Channel::setLimit(std::size_t const &limit)
 {
-    if (this->modes.find('l') == this->modes.end())
-        throw std::runtime_error(
-            "channel mode +l must be set to define a limit");
-
     this->limit = limit;
 
     return;
