@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/12/07 05:49:55 by abenamar         ###   ########.fr        #
+#    Updated: 2024/12/07 19:28:22 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,6 +35,7 @@ CMDS += user.cpp
 CMDS += ping.cpp
 CMDS += oper.cpp
 CMDS += quit.cpp
+CMDS += lusers.cpp
 CMDS += motd.cpp
 CMDS += version.cpp
 CMDS += names.cpp
@@ -45,6 +46,8 @@ CMDS += kick.cpp
 CMDS += mode.cpp
 CMDS += privmsg.cpp
 CMDS += notice.cpp
+CMDS += who.cpp
+CMDS += wallops.cpp
 
 OBJDIR := obj
 
