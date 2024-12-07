@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 04:50:10 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 18:02:25 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 std::string const irc::Client::SPECIAL_CHARS("[]\\`_^{|}");
 
 int irc::Client::unique(0);
+
+std::size_t irc::Client::getUniques(void) { return (Client::unique); }
 
 bool irc::Client::channel_ptr_less(Channel const *const &lhs,
 								   Channel const *const &rhs)

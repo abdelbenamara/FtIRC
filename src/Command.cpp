@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:21:33 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 02:20:12 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 18:52:41 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             CMD_PING,
             CMD_OPER,
             CMD_QUIT,
+            CMD_LUSERS,
             CMD_MOTD,
             CMD_VERSION,
             CMD_NAMES,
@@ -99,6 +100,8 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             CMD_MODE,
             CMD_PRIVMSG,
             CMD_NOTICE,
+            CMD_WHO,
+            CMD_WALLOPS,
             CMD_SUMMON,
             CMD_USERS},
         (irc::Command::t_cmd[]){
@@ -108,6 +111,7 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             &irc::Command::ping,
             &irc::Command::oper,
             &irc::Command::quit,
+            &irc::Command::lusers,
             &irc::Command::motd,
             &irc::Command::version,
             &irc::Command::names,
@@ -118,9 +122,11 @@ irc::utils::s_istringmap<irc::Command::t_cmd>::type const
             &irc::Command::mode,
             &irc::Command::privmsg,
             &irc::Command::notice,
+            &irc::Command::who,
+            &irc::Command::wallops,
             &::summon,
             &::users},
-        18));
+        21));
 
 irc::Command::~Command(void) throw() { return; }
 

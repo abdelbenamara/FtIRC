@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 06:29:37 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 15:58:39 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,10 @@ int main(int argc, char *argv[])
 		bot = new irc::GameBot(irc::utils::connect_socket(
 			irc::Server::instance().getSocket()));
 
-		irc::Server::instance().addBot("GameBot", "#jan-ken-pon", bot);
+		irc::Server::instance().addBot("GameBot",
+									   "#jan-ken-pon",
+									   "Ready... JAN, KEN, PON!",
+									   bot);
 		::handle(SIGNALS);
 
 		while (true)

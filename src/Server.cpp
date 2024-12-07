@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 11:19:24 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 18:10:30 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,6 +250,10 @@ void irc::Server::challengeRegistration(Client &client)
 	this->produceSupportList(client);
 	Command::apply(builder
 					   .withoutPrefix()
+					   .withCommand(CMD_LUSERS)
+					   .build(),
+				   client);
+	Command::apply(builder
 					   .withCommand(CMD_MOTD)
 					   .withParameter(this->getTextProperty(PRP_SERVERNAME))
 					   .build(),
@@ -267,6 +271,7 @@ void irc::Server::challengeRegistration(Client &client)
 
 void irc::Server::addBot(std::string const &nickname,
 						 std::string const &channelname,
+						 std::string const &topic,
 						 Client *bot)
 {
 	epoll_event hints;
@@ -320,11 +325,23 @@ void irc::Server::addBot(std::string const &nickname,
 					  .addParameter("*")
 					  .addParameter(nickname)
 					  .build());
+	this->produce(*bot,
+				  builder
+					  .withCommand(CMD_JOIN)
+					  .withParameter(channelname)
+					  .build());
+	this->produce(*bot,
+				  builder
+					  .withCommand(CMD_MODE)
+					  .withParameter(channelname)
+					  .addParameter(std::string(1, '+') + CHAN_MODE_t)
+					  .build());
 
 	return (this->produce(*bot,
 						  builder
-							  .withCommand(CMD_JOIN)
+							  .withCommand(CMD_TOPIC)
 							  .withParameter(channelname)
+							  .addParameter(topic)
 							  .build()));
 }
 
@@ -368,7 +385,7 @@ void irc::Server::removeClient(Client &client, std::string const &comment)
 	}
 	catch (std::exception const &)
 	{
-		// Any error (e.g. brken pipe) is irrelevant
+		// Any error (e.g. broken pipe) is irrelevant
 		// Note: client socket must be closed anyway
 	}
 
