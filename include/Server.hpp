@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/28 13:10:06 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 05:01:35 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,6 @@
 namespace irc
 {
 	class Channel;
-	class Client;
-	class Message;
 
 	class Server : public AServer
 	{
@@ -72,10 +70,14 @@ namespace irc
 					 std::string const &comment);
 		void produceSupportList(Client const &client);
 		void challengeRegistration(Client &client);
+		void addBot(std::string const &nickname,
+					std::string const &channelname,
+					Client *bot);
 		void removeClient(Client &client, std::string const &comment);
 		void poll(void);
 
 	private:
+		typedef std::map<int, Client *> t_bots;
 		typedef std::map<int, std::queue<Message> > t_outputs;
 
 		int const epollfd;
@@ -83,6 +85,7 @@ namespace irc
 
 		epoll_event *events;
 		char *buffer;
+		t_bots bots;
 		t_clients clients;
 		AServer::t_sizes hosts;
 		std::map<int, bool> overflows;

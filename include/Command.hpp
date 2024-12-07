@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 02:12:35 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 03:05:20 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,10 +128,6 @@
 
 namespace irc
 {
-    class Client;
-    class Message;
-    class Server;
-
     class Command
     {
     public:

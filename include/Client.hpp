@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 02:42:25 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 04:49:57 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "Channel.hpp"
 #include "Message.hpp"
-#include "Server.hpp"
 #include "utils.hpp"
 
 #define USR_MODE_i 'i'
@@ -32,7 +30,6 @@
 namespace irc
 {
 	class Channel;
-	class Message;
 
 	class Client
 	{
@@ -61,6 +58,7 @@ namespace irc
 		std::string userId(void) const;
 		std::string str(void) const;
 		void publish(Message const &message) const;
+		virtual void apply(Message const &) const;
 
 		void produce(Message const &message);
 		Message consume(void);

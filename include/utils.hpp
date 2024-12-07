@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 16:14:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/27 15:39:45 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 03:07:39 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 #define __UTILS_HPP__
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <cerrno>
@@ -56,6 +58,7 @@ namespace irc
 
         std::string get_haddr(t_sockinfo const &si);
         in_port_t get_hport(t_sockinfo const &si);
+        t_sockinfo connect_socket(utils::t_sockinfo const &sockinfo);
 
         template <typename T>
         std::string to_string(T const &value);
