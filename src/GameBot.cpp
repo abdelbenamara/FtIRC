@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 02:38:27 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 12:02:40 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 12:08:11 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void irc::GameBot::apply(Message const &message) const
 
     builder
         .withPrefix(this->getNickname())
-        .withCommand(CMD_NOTICE);
+        .withCommand(CMD_PRIVMSG);
     shapes.push_back("ROCK");
     shapes.push_back("PAPER");
     shapes.push_back("SCISSORS");
