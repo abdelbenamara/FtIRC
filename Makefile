@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/12/04 01:57:51 by abenamar         ###   ########.fr        #
+#    Updated: 2024/12/07 05:49:55 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ SRCS += Message.cpp
 SRCS += Client.cpp 
 SRCS += Channel.cpp
 SRCS += Command.cpp
+SRCS += GameBot.cpp
 SRCS += ircserv.cpp
 
 CMDS := pass.cpp
