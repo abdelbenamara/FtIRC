@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:17:58 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/05 17:01:57 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 18:44:40 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ void irc::Command::nick(Message const &message, Client &client)
 
     builder.withCommand(message.getCommand());
 
-    if (message.getParameters().empty())
+    if (message.getParameters().empty() ||
+        message.getParameters().at(0).empty())
         return (
             Command::reply(ERR_NONICKNAMEGIVEN, client, message.getCommand()));
 
