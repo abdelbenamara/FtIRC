@@ -6,11 +6,13 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/12 19:45:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 02:42:35 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 04:50:10 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Channel.hpp"
 #include "Client.hpp"
+#include "Server.hpp"
 
 std::string const irc::Client::SPECIAL_CHARS("[]\\`_^{|}");
 
@@ -147,6 +149,8 @@ void irc::Client::publish(Message const &message) const
 			Server::instance().produce(cit->second, message);
 	}
 }
+
+void irc::Client::apply(Message const &) const { return; }
 
 void irc::Client::produce(Message const &message)
 {

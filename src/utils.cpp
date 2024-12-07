@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 03:17:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/27 17:22:45 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 03:08:04 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,4 +107,74 @@ in_port_t irc::utils::get_hport(t_sockinfo const &si)
         port = &reinterpret_cast<sockaddr_in const *>(&si.second)->sin_port;
 
     return (::ntohs(*port));
+}
+
+irc::utils::t_sockinfo irc::utils::connect_socket(
+    irc::utils::t_sockinfo const &sockinfo)
+{
+    addrinfo hints, *info;
+    int eai;
+    std::string buf;
+    irc::utils::t_sockinfo conninfo;
+
+    hints.ai_flags = AI_NUMERICHOST |
+                     AI_NUMERICSERV |
+                     AI_V4MAPPED |
+                     AI_ADDRCONFIG;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_addrlen = sizeof(sockaddr_storage);
+    hints.ai_addr = NULL;
+    hints.ai_canonname = NULL;
+    hints.ai_next = NULL;
+    eai = ::getaddrinfo(
+        irc::utils::get_haddr(sockinfo).c_str(),
+        irc::utils::to_string(irc::utils::get_hport(sockinfo)).c_str(),
+        &hints,
+        &hints.ai_next);
+
+    if (eai)
+    {
+        buf = ::gai_strerror(eai);
+
+        if (eai == EAI_SYSTEM)
+            buf = irc::utils::strerrno(buf);
+
+        throw std::runtime_error("getaddrinfo: " + buf);
+    }
+
+    for (info = hints.ai_next; info != NULL; info = info->ai_next)
+    {
+        conninfo.first = ::socket(info->ai_family,
+                                  info->ai_socktype,
+                                  info->ai_protocol);
+
+        if (conninfo.first == -1)
+            continue;
+        else if (!::connect(conninfo.first, info->ai_addr, info->ai_addrlen))
+            break;
+
+        ::close(conninfo.first);
+    }
+
+    ::freeaddrinfo(hints.ai_next);
+
+    try
+    {
+        if (info == NULL)
+            throw std::runtime_error(irc::utils::strerrno("connect"));
+        else if (::getsockname(conninfo.first,
+                               reinterpret_cast<sockaddr *>(&conninfo.second),
+                               &hints.ai_addrlen) == -1)
+            throw std::runtime_error(irc::utils::strerrno("getsockname"));
+    }
+    catch (std::exception const &)
+    {
+        ::close(conninfo.first);
+
+        throw;
+    }
+
+    return (conninfo);
 }

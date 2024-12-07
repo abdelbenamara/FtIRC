@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:37:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/04 17:30:01 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 11:19:24 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ irc::Server::Server(std::string const &numericserv,
 	  start(::time(NULL)),
 	  events(NULL),
 	  buffer(NULL),
+	  bots(),
 	  clients(),
 	  hosts(&utils::i_string_less),
 	  overflows(),
@@ -262,6 +263,69 @@ void irc::Server::challengeRegistration(Client &client)
 					   client);
 
 	return;
+}
+
+void irc::Server::addBot(std::string const &nickname,
+						 std::string const &channelname,
+						 Client *bot)
+{
+	epoll_event hints;
+	Message::Builder builder;
+
+	try
+	{
+		hints.events = EPOLLIN | EPOLLOUT | EPOLLET;
+		hints.data.fd = bot->getSocket().first;
+
+		if (::fcntl(hints.data.fd, F_SETFL, O_NONBLOCK) == -1)
+			throw std::runtime_error(
+				utils::strerrno("fcntl: F_SETFL: O_NONBLOCK"));
+		else if (::epoll_ctl(this->epollfd,
+							 EPOLL_CTL_ADD,
+							 hints.data.fd,
+							 &hints) == -1)
+			throw std::runtime_error(
+				utils::strerrno("epoll_ctl: EPOLL_CTL_ADD)"));
+	}
+	catch (std::exception const &)
+	{
+		::epoll_ctl(this->epollfd, EPOLL_CTL_DEL, hints.data.fd, &hints);
+		::close(hints.data.fd);
+
+		throw;
+	}
+
+	this->bots.insert(std::make_pair(hints.data.fd, bot));
+	this->clients.insert(std::make_pair(hints.data.fd, *bot));
+	bot->setNickname(nickname);
+	this->inputs.insert(std::make_pair(hints.data.fd, std::string()));
+	this->inputs.find(hints.data.fd)
+		->second.reserve(this->getSizeProperty(PRP_LINELEN));
+	this->outputs.insert(std::make_pair(hints.data.fd, std::queue<Message>()));
+	this->produce(*bot,
+				  builder
+					  .withCommand(CMD_PASS)
+					  .withParameter(this->getTextProperty(PRP_SERVERPASS))
+					  .build());
+	this->produce(*bot,
+				  builder
+					  .withCommand(CMD_NICK)
+					  .withParameter(nickname)
+					  .build());
+	this->produce(*bot,
+				  builder
+					  .withCommand(CMD_USER)
+					  .withParameter(nickname)
+					  .addParameter("0")
+					  .addParameter("*")
+					  .addParameter(nickname)
+					  .build());
+
+	return (this->produce(*bot,
+						  builder
+							  .withCommand(CMD_JOIN)
+							  .withParameter(channelname)
+							  .build()));
 }
 
 void irc::Server::removeClient(Client &client, std::string const &comment)
@@ -506,6 +570,7 @@ bool irc::Server::consume(Client &client)
 void irc::Server::read(Client &client)
 {
 	int const connfd(client.getSocket().first);
+	Server::t_bots::const_iterator cit(this->bots.find(connfd));
 
 	if (!this->consume(client))
 		return (this->removeClient(client, "Client exited"));
@@ -520,7 +585,10 @@ void irc::Server::read(Client &client)
 
 		try
 		{
-			Command::apply(client.consume(), client);
+			if (cit != this->bots.end())
+				cit->second->apply(client.consume());
+			else
+				Command::apply(client.consume(), client);
 		}
 		catch (std::exception const &e)
 		{

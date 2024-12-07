@@ -6,11 +6,12 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/25 22:30:15 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/05 18:17:19 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 03:01:42 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
+#include "Server.hpp"
 
 bool irc::Channel::is_not_key(char const &c)
 {

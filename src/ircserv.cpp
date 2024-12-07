@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/14 22:40:21 by abenamar          #+#    #+#             */
-/*   Updated: 2024/11/21 22:10:07 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 06:29:37 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include <exception>
 #include <iostream>
 
+#include "Client.hpp"
+#include "GameBot.hpp"
 #include "Server.hpp"
 #include "utils.hpp"
 
@@ -49,6 +51,8 @@ static void handle(irc::utils::s_istringmap<int>::type const &signals)
 
 int main(int argc, char *argv[])
 {
+	irc::Client *bot(NULL);
+
 	if (argc < 3)
 	{
 		std::cerr << "Usage: " << argv[0] << " <port> <password>"
@@ -75,6 +79,10 @@ int main(int argc, char *argv[])
 				  << irc::utils::get_hport(irc::Server::instance().getSocket())
 				  << std::endl;
 
+		bot = new irc::GameBot(irc::utils::connect_socket(
+			irc::Server::instance().getSocket()));
+
+		irc::Server::instance().addBot("GameBot", "#jan-ken-pon", bot);
 		::handle(SIGNALS);
 
 		while (true)
@@ -84,6 +92,8 @@ int main(int argc, char *argv[])
 	{
 		std::cerr << "Error: " << e.what() << std::endl;
 	}
+
+	delete bot;
 
 	std::cout << "Warning: IRC server shutting down" << std::endl;
 
