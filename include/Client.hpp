@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 20:21:22 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 04:49:57 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 18:01:37 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ namespace irc
 		typedef bool (*t_channel_ptr_comp)(Channel const *const &,
 										   Channel const *const &);
 		typedef std::set<Channel const *, t_channel_ptr_comp> t_channels;
+
+		static std::size_t getUniques(void);
 
 		Client(utils::t_sockinfo const &sockinfo);
 		Client(Client const &src);

@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/21 21:05:45 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 03:05:20 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 19:04:14 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@
 #define CMD_PONG "PONG"
 #define CMD_OPER "OPER"
 #define CMD_QUIT "QUIT"
+#define CMD_LUSERS "LUSERS"
 #define CMD_MOTD "MOTD"
 #define CMD_VERSION "VERSION"
 #define CMD_NAMES "NAMES"
@@ -52,6 +53,7 @@
 #define CMD_MODE "MODE"
 #define CMD_PRIVMSG "PRIVMSG"
 #define CMD_NOTICE "NOTICE"
+#define CMD_WHO "WHO"
 #define CMD_WALLOPS "WALLOPS"
 #define CMD_SUMMON "SUMMON"
 #define CMD_USERS "USERS"
@@ -68,6 +70,14 @@
 #define RPL_MYINFO "004"
 #define RPL_ISUPPORT "005"
 #define RPL_UMODEIS "221"
+#define RPL_LUSERCLIENT "251"
+#define RPL_LUSEROP "252"
+#define RPL_LUSERUNKNOWN "253"
+#define RPL_LUSERCHANNELS "254"
+#define RPL_LUSERME "255"
+#define RPL_LOCALUSERS "265"
+#define RPL_GLOBALUSERS "266"
+#define RPL_ENDOFWHO "315"
 #define RPL_CHANNELMODEIS "324"
 #define RPL_CREATIONTIME "329"
 #define RPL_NOTOPIC "331"
@@ -77,6 +87,7 @@
 #define RPL_ENDOFINVITELIST "337"
 #define RPL_INVITING "341"
 #define RPL_VERSION "351"
+#define RPL_WHOREPLY "352"
 #define RPL_NAMREPLY "353"
 #define RPL_ENDOFNAMES "366"
 #define RPL_MOTD "372"
@@ -150,6 +161,7 @@ namespace irc
         static void ping(Message const &message, Client &client);
         static void oper(Message const &message, Client &client);
         static void quit(Message const &message, Client &client);
+        static void lusers(Message const &, Client &client);
         static void motd(Message const &message, Client &client);
         static void version(Message const &message, Client &client);
         static void names(Message const &message, Client &client);
@@ -160,7 +172,8 @@ namespace irc
         static void mode(Message const &message, Client &client);
         static void privmsg(Message const &message, Client &client);
         static void notice(Message const &message, Client &client);
-        // static void wallops(Message const &message, Client &client);
+        static void who(Message const &message, Client &client);
+        static void wallops(Message const &message, Client &client);
 
         Command(void);                       /* = delete (C++11) */
         Command(Command const &);            /* = delete (C++11) */

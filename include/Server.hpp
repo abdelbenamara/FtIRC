@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:33:05 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/07 05:01:35 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/07 15:51:31 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ namespace irc
 		void challengeRegistration(Client &client);
 		void addBot(std::string const &nickname,
 					std::string const &channelname,
+					std::string const &topic,
 					Client *bot);
 		void removeClient(Client &client, std::string const &comment);
 		void poll(void);
