@@ -6,7 +6,7 @@
 /*   By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/01 20:21:27 by abenamar          #+#    #+#             */
-/*   Updated: 2024/12/05 18:11:56 by abenamar         ###   ########.fr       */
+/*   Updated: 2024/12/26 10:21:57 by abenamar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,9 @@ static std::vector<std::string> channel_mode(
     irc::Server::t_clients::iterator userit;
 
     changes.resize(1);
-    builder.withCommand(ERR_INVALIDMODEPARAM);
+    builder
+        .withPrefix(irc::Server::instance().getTextProperty(PRP_SERVERNAME))
+        .withCommand(ERR_INVALIDMODEPARAM);
 
     for (; cap > 0 && cur < params.at(1).length();)
     {
@@ -163,9 +165,13 @@ static std::vector<std::string> channel_mode(
                                 channel.setKey(params.at(idx));
                                 changes.push_back(params.at(idx));
                             }
-                            catch (std::domain_error const &)
+                            catch (std::domain_error const &e)
                             {
-                                throw;
+                                irc::Command::reply(ERR_INVALIDKEY,
+                                                    client,
+                                                    channel.getName());
+                                
+                                throw std::logic_error("+k: skip");
                             }
                         }
                         else if (!add && !channel.getKey().empty())
@@ -176,26 +182,30 @@ static std::vector<std::string> channel_mode(
                                                     client,
                                                     channel.getName());
 
-                                throw std::exception();
+                                throw std::logic_error("-k: skip");
                             }
 
                             channel.setKey("");
                             changes.push_back(params.at(idx));
                         }
                         else
-                            throw std::logic_error("skip");
+                            throw std::logic_error("k: skip");
 
                         break;
 
                     case CHAN_MODE_l:
-                        if (add && std::istringstream(params.at(idx)) >> pos)
+                        if (add)
                         {
-                            channel.setLimit(pos);
-                            changes.push_back(irc::utils::to_string(pos));
+                            if (std::istringstream(params.at(idx)) >> pos)
+                            {
+                                channel.setLimit(pos);
+                                changes.push_back(irc::utils::to_string(pos));
+                            }
+                            else
+                                throw std::domain_error(
+                                    params.at(idx) +
+                                    ": is not a valid size");
                         }
-                        else
-                            throw std::domain_error(params.at(idx) +
-                                                    ": is not a valid size");
 
                         break;
 
@@ -210,7 +220,7 @@ static std::vector<std::string> channel_mode(
                                                 client,
                                                 params.at(idx));
 
-                            throw std::exception();
+                            throw std::logic_error("o: skip");
                         }
                         else if (channel.getMembers().find(
                                      &(userit->second)) !=
@@ -233,7 +243,7 @@ static std::vector<std::string> channel_mode(
                             changes.push_back(params.at(idx));
                         }
                         else
-                            throw std::logic_error("skip");
+                            throw std::logic_error("o: skip");
 
                         break;
                     }
@@ -252,8 +262,10 @@ static std::vector<std::string> channel_mode(
 
                     break;
                 }
-                catch (std::logic_error const &)
+                catch (std::logic_error const &e)
                 {
+                    std::cerr << "Error: " << e.what() << std::endl;
+
                     break;
                 }
 
