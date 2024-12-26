@@ -6,7 +6,7 @@
 #    By: abenamar <abenamar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/14 22:40:33 by abenamar          #+#    #+#              #
-#    Updated: 2024/12/07 19:28:22 by abenamar         ###   ########.fr        #
+#    Updated: 2024/12/24 13:29:06 by abenamar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -80,6 +80,8 @@ $(NAME): $(OBJDIR) $(OBJS)
 $(OBJDIR):
 	$(MKDIR) $(OBJDIR)/$(CMDDIR)
 
+bonus: $(NAME)
+
 all: $(NAME)
 
 clean:
@@ -92,4 +94,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: re fclean clean all
+.PHONY: re fclean clean all bonus
